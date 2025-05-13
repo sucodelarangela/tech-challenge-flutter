@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tech_challenge_flutter/models/transaction_mode.dart';
 import 'package:tech_challenge_flutter/screens/transaction_mock.dart';
+import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -11,13 +12,15 @@ class TransactionsScreen extends StatefulWidget {
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
   late List<Transaction> transactions;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
     final groupedTransactions = _groupByMonth(transactions);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Transações'), centerTitle: true),
+      appBar: AppBar(title: const Text('Transações')),
+      drawer: const MainDrawer(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Card(
@@ -26,28 +29,39 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: ListView(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children:
-                  groupedTransactions.entries.map((entry) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildMesHeader(entry.key),
-                        ...entry.value
-                            .map(
-                              (transaction) => _buildTransacao(
-                                transaction.description,
-                                _formatDate(transaction.date),
-                                transaction.amount,
-                                transaction.type,
-                              ),
-                            )
-                            .toList(),
-                      ],
-                    );
-                  }).toList(),
+            child: Scrollbar(
+              controller: _scrollController,
+              thumbVisibility: true,
+              thickness: 3.0,
+              radius: const Radius.circular(4),
+              child: GlowingOverscrollIndicator(
+                axisDirection: AxisDirection.down,
+                color: Colors.green, // Verde suave
+                child: ListView(
+                  controller: _scrollController,
+                  padding: EdgeInsets.zero,
+                  physics: const BouncingScrollPhysics(),
+                  children:
+                      groupedTransactions.entries.map((entry) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildMesHeader(entry.key),
+                            ...entry.value
+                                .map(
+                                  (transaction) => _buildTranstions(
+                                    transaction.description,
+                                    _formatDate(transaction.date),
+                                    transaction.amount,
+                                    transaction.type,
+                                  ),
+                                )
+                                .toList(),
+                          ],
+                        );
+                      }).toList(),
+                ),
+              ),
             ),
           ),
         ),
@@ -56,11 +70,16 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
     transactions =
         transactionsMock.map((json) => Transaction.fromJson(json)).toList();
-
     transactions.sort((a, b) => b.date.compareTo(a.date));
   }
 
@@ -80,7 +99,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
-  Widget _buildTransacao(
+  Widget _buildTranstions(
     String descricao,
     String data,
     double valor,
@@ -88,8 +107,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   ) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey, width: 0.5)),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[300]!, width: 0.5),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
