@@ -21,16 +21,16 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets\images\
+    - assets/images/
 
   fonts:
     - family: Inter
       fonts:
-        - asset: assets\fonts\Inter_18pt-Regular.ttf
-        - asset: assets\fonts\Inter_18pt-Bold.ttf
+        - asset: assets/fonts/Inter_18pt-Regular.ttf
+        - asset: assets/fonts/Inter_18pt-Bold.ttf
           weight: 700
     - family: RobotoMono
       fonts:
-        - asset: assets\fonts\RobotoMono-Regular.ttf
-        - asset: assets\fonts\RobotoMono-Medium.ttf
+        - asset: assets/fonts/RobotoMono-Regular.ttf
+        - asset: assets/fonts/RobotoMono-Medium.ttf
           weight: 700
