@@ -1,9 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/models/auth.dart';
-import 'package:tech_challenge_flutter/screens/home_screen.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:tech_challenge_flutter/models/auth_provider.dart';
+import 'package:tech_challenge_flutter/models/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/splash_screen.dart';
+import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
 import 'package:tech_challenge_flutter/screens/transactions_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
@@ -19,7 +21,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => Auth())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => TransactionProvider()),
+      ],
       child: MaterialApp(
         title: 'Bytebank',
         // THEME:
@@ -44,10 +49,21 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', 'US'), // English
+          Locale('pt', 'BR'), // Portuguese (Brazil)
+        ],
+
         // ROTAS DE NAVEGAÇÃO
         routes: {
           AppRoutes.SPLASH: (ctx) => SplashScreen(),
           AppRoutes.TRANSACTIONS: (ctx) => const TransactionsScreen(),
+          AppRoutes.TRANSACTION_FORM: (ctx) => const TransactionFormScreen(),
         },
 
         debugShowCheckedModeBanner: false,

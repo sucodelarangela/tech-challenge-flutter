@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/models/auth.dart';
+import 'package:tech_challenge_flutter/models/auth_provider.dart';
 import 'package:tech_challenge_flutter/models/auth_exception.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
@@ -24,7 +24,7 @@ class MainDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Auth auth = Provider.of(context, listen: false);
+    AuthProvider auth = Provider.of(context, listen: false);
 
     Future<void> logout() async {
       try {
