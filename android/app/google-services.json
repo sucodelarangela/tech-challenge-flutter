@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "596106905204",
+    "project_id": "tech-challenge-flutter-1f03a",
+    "storage_bucket": "tech-challenge-flutter-1f03a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:596106905204:android:32abdfd1074f7fc4863321",
+        "android_client_info": {
+          "package_name": "com.example.tech_challenge_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6v4iRxMpAGIFAWybsNVEhhdGTo8Ue8TI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -24,3 +24,10 @@ tech_challenge_flutter/
 ├── pubspec.yaml            - Dependências e scripts (novos pacotes geralmente vem do pub.dev automaticamente)
 └── README.md               - Documentação do projeto
 ```
+
+## Autenticação
+
+Autenticação via Firebase. Para acessar, registre-se ou utilize os dados abaixo no Login:
+
+- **E-mail:** `teste@teste.com`
+- **Senha:** `123456`
