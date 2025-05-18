@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tech_challenge_flutter/models/auth.dart';
 import 'package:tech_challenge_flutter/screens/home_screen.dart';
-import 'package:tech_challenge_flutter/screens/login_screen.dart';
+import 'package:tech_challenge_flutter/screens/splash_screen.dart';
 import 'package:tech_challenge_flutter/screens/transactions_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
@@ -44,12 +44,9 @@ class MyApp extends StatelessWidget {
           ),
         ),
 
-        initialRoute: AppRoutes.LOGIN,
-
         // ROTAS DE NAVEGAÇÃO
         routes: {
-          AppRoutes.LOGIN: (ctx) => LoginScreen(),
-          AppRoutes.HOME: (ctx) => const HomeScreen(),
+          AppRoutes.SPLASH: (ctx) => SplashScreen(),
           AppRoutes.TRANSACTIONS: (ctx) => const TransactionsScreen(),
         },
 

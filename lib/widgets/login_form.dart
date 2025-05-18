@@ -49,7 +49,7 @@ class _LoginFormState extends State<LoginForm> {
     try {
       if (_isLogin()) {
         await auth.login(_authData['email']!, _authData['password']!);
-        Navigator.of(context).pushReplacementNamed(AppRoutes.HOME);
+        Navigator.of(context).pushReplacementNamed(AppRoutes.SPLASH);
       } else {
         await auth.register(_authData['email']!, _authData['password']!);
       }
