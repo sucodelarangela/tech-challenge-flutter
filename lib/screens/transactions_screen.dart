@@ -1,17 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-<<<<<<< HEAD
-import 'package:tech_challenge_flutter/models/transaction_mode.dart';
-import 'package:tech_challenge_flutter/screens/transaction_mock.dart';
-=======
 import 'package:provider/provider.dart';
+import 'package:tech_challenge_flutter/components/filter_modal.dart';
 import 'package:tech_challenge_flutter/models/auth_provider.dart';
-import 'package:tech_challenge_flutter/models/transaction.dart';
 import 'package:tech_challenge_flutter/models/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
->>>>>>> main
+import 'package:tech_challenge_flutter/utils/format_date.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
+
+import '../models/transaction.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -21,160 +18,224 @@ class TransactionsScreen extends StatefulWidget {
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
-  late List<Transaction> transactions;
   final ScrollController _scrollController = ScrollController();
+  late Future<List<TransactionModel>> _transactionsFuture;
+  String? _filterCategory;
+  int? _filterMonth;
+  List<TransactionModel> _allTransactions = [];
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final groupedTransactions = _groupByMonth(transactions);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Transações')),
-      drawer: const MainDrawer(),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Card(
-          color: Colors.white,
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Scrollbar(
-              controller: _scrollController,
-              thumbVisibility: true,
-              thickness: 3.0,
-              radius: const Radius.circular(4),
-              child: GlowingOverscrollIndicator(
-                axisDirection: AxisDirection.down,
-                color: Colors.green, // Verde suave
-                child: ListView(
-                  controller: _scrollController,
-                  padding: EdgeInsets.zero,
-                  physics: const BouncingScrollPhysics(),
-                  children:
-                      groupedTransactions.entries.map((entry) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildMesHeader(entry.key),
-                            ...entry.value
-                                .map(
-                                  (transaction) => _buildTranstions(
-                                    transaction.description,
-                                    _formatDate(transaction.date),
-                                    transaction.amount,
-                                    transaction.type,
-                                  ),
-                                )
-                                .toList(),
-                          ],
-                        );
-                      }).toList(),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-=======
     final isAuth = Provider.of<AuthProvider>(context).isAuth;
 
-    return !isAuth
-        ? LoginScreen()
-        : Scaffold(
-          appBar: AppBar(
-            title: Text('Transações'),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.TRANSACTION_FORM);
-                },
-                icon: Icon(Icons.add),
-              ),
-            ],
+    if (!isAuth) {
+      return const LoginScreen();
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Transações'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            onPressed: _showFilterModal,
+            icon: Icon(
+              Icons.filter_alt,
+              color:
+                  _filterCategory != null || _filterMonth != null
+                      ? Colors.blue
+                      : null,
+            ),
           ),
-
-          drawer: MainDrawer(),
-
-          body: Column(
-            children: [
-              Text('GUILHERME, ajustar com o que você já fez'),
-              FutureBuilder<List<TransactionModel>>(
-                future:
-                    Provider.of<TransactionProvider>(context).getTransactions(),
+          if (_filterCategory != null || _filterMonth != null)
+            IconButton(
+              onPressed: _clearFilter,
+              icon: const Icon(Icons.filter_alt_off),
+            ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRoutes.TRANSACTION_FORM);
+            },
+            icon: const Icon(Icons.add),
+          ),
+        ],
+      ),
+      drawer: const MainDrawer(),
+      body: Column(
+        children: [
+          if (_filterCategory != null || _filterMonth != null)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+              color: Colors.blue[50],
+              child: Row(
+                children: [
+                  Text(
+                    _buildFilterText(),
+                    style: TextStyle(
+                      color: Colors.blue[800],
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: _clearFilter,
+                    child: Text(
+                      'Limpar',
+                      style: TextStyle(
+                        color: Colors.blue[800],
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: FutureBuilder<List<TransactionModel>>(
+                future: _transactionsFuture,
                 builder: (ctx, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (snapshot.hasError) {
-                    return Center(child: Text('Erro ao carregar transações.'));
+                    return Center(
+                      child: Text(
+                        'Erro ao carregar transações: ${snapshot.error}',
+                      ),
+                    );
                   }
 
                   final transactions = snapshot.data ?? [];
 
                   if (transactions.isEmpty) {
-                    return Center(child: Text('Nenhuma transação encontrada.'));
+                    return Center(child: Text(_buildEmptyListMessage()));
                   }
 
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: transactions.length,
-                      itemBuilder: (ctx, index) {
-                        final transaction = transactions[index];
-                        return ListTile(
-                          leading:
-                              transaction.image.isNotEmpty
-                                  ? Image.network(
-                                    transaction.image,
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.cover,
-                                  )
-                                  : Icon(Icons.receipt_long),
-                          title: Text(transaction.description),
-                          subtitle: Text(
-                            'R\$ ${transaction.value.toStringAsFixed(2)} - ${transaction.category}',
+                  final groupedTransactions = _groupByMonth(transactions);
+
+                  return Card(
+                    color: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Scrollbar(
+                        controller: _scrollController,
+                        thumbVisibility: true,
+                        thickness: 3.0,
+                        radius: const Radius.circular(4),
+                        child: GlowingOverscrollIndicator(
+                          axisDirection: AxisDirection.down,
+                          color: Colors.green,
+                          child: ListView(
+                            controller: _scrollController,
+                            padding: EdgeInsets.zero,
+                            physics: const BouncingScrollPhysics(),
+                            children:
+                                groupedTransactions.entries.map((entry) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      _buildMonthHeader(entry.key),
+                                      ...entry.value
+                                          .map(
+                                            (transaction) => _buildTransaction(
+                                              transaction.description,
+                                              formatDate(
+                                                transaction.date.toDate(),
+                                              ),
+                                              transaction.value,
+                                              transaction.isIncome,
+                                            ),
+                                          )
+                                          .toList(),
+                                    ],
+                                  );
+                                }).toList(),
                           ),
-                          trailing: Text(
-                            transaction.date.toDate().toString().split(' ')[0],
-                            style: TextStyle(fontSize: 12),
-                          ),
-                        );
-                      },
+                        ),
+                      ),
                     ),
                   );
                 },
               ),
-            ],
+            ),
           ),
-        );
->>>>>>> main
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+        ],
+      ),
+    );
   }
 
   @override
   void initState() {
     super.initState();
-    transactions =
-        transactionsMock.map((json) => Transaction.fromJson(json)).toList();
-    transactions.sort((a, b) => b.date.compareTo(a.date));
+    _transactionsFuture = Future.value([]);
+    _loadTransactions();
   }
 
-  Widget _buildMesHeader(String mes) {
+  void _applyFilter() {
+    setState(() {
+      if (_filterCategory == null && _filterMonth == null) {
+        _transactionsFuture = Future.value(_allTransactions);
+      } else {
+        _transactionsFuture = Future.value(
+          _allTransactions.where((transaction) {
+            final date = transaction.date.toDate();
+            final categoryMatch =
+                _filterCategory == null
+                    ? true
+                    : _filterCategory == 'Entrada'
+                    ? transaction.isIncome
+                    : !transaction.isIncome;
+            final monthMatch =
+                _filterMonth == null ? true : date.month == _filterMonth;
+            return categoryMatch && monthMatch;
+          }).toList(),
+        );
+      }
+    });
+  }
+
+  String _buildEmptyListMessage() {
+    if (_filterCategory != null && _filterMonth != null) {
+      return 'Nenhuma transação encontrada para "${_filterCategory}" em ${getMonthName(_filterMonth!)}';
+    } else if (_filterCategory != null) {
+      return 'Nenhuma transação encontrada para "${_filterCategory}"';
+    } else if (_filterMonth != null) {
+      return 'Nenhuma transação encontrada para ${getMonthName(_filterMonth!)}';
+    } else {
+      return 'Nenhuma transação encontrada.';
+    }
+  }
+
+  String _buildFilterText() {
+    final categoryText =
+        _filterCategory != null ? 'Categoria: $_filterCategory' : '';
+    final monthText =
+        _filterMonth != null ? 'Mês: ${getMonthName(_filterMonth!)}' : '';
+
+    if (categoryText.isNotEmpty && monthText.isNotEmpty) {
+      return '$categoryText | $monthText';
+    } else if (categoryText.isNotEmpty) {
+      return categoryText;
+    } else {
+      return monthText;
+    }
+  }
+
+  Widget _buildMonthHeader(String month) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       color: Colors.grey[100],
       child: Text(
-        mes,
+        month,
         style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 14,
@@ -184,12 +245,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
-  Widget _buildTranstions(
+  Widget _buildTransaction(
     String descricao,
     String data,
     double valor,
-    String tipo,
+    bool isIncome,
   ) {
+    final textValue =
+        isIncome
+            ? 'R\$ ${valor.toStringAsFixed(2)}'
+            : '-R\$ ${valor.toStringAsFixed(2)}';
+
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
       decoration: BoxDecoration(
@@ -217,51 +283,87 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               ),
             ],
           ),
-          Text(
-            valor >= 0
-                ? 'R\$${valor.toStringAsFixed(2)}'
-                : '-R\$${(-valor).toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: valor >= 0 ? Colors.green[700] : Colors.red[700],
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                textValue,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isIncome ? Colors.green[700] : Colors.red[700],
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
           ),
         ],
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}';
+  void _clearFilter() {
+    setState(() {
+      _filterCategory = null;
+      _filterMonth = null;
+      _transactionsFuture = Future.value(_allTransactions);
+    });
   }
 
-  String _getMonthName(int month) {
-    return [
-      'Janeiro',
-      'Fevereiro',
-      'Março',
-      'Abril',
-      'Maio',
-      'Junho',
-      'Julho',
-      'Agosto',
-      'Setembro',
-      'Outubro',
-      'Novembro',
-      'Dezembro',
-    ][month - 1];
-  }
-
-  Map<String, List<Transaction>> _groupByMonth(List<Transaction> transactions) {
-    final Map<String, List<Transaction>> grouped = {};
+  Map<String, List<TransactionModel>> _groupByMonth(
+    List<TransactionModel> transactions,
+  ) {
+    final Map<String, List<TransactionModel>> grouped = {};
 
     for (final transaction in transactions) {
-      final monthYear =
-          '${_getMonthName(transaction.date.month)} ${transaction.date.year}';
+      final date = transaction.date.toDate();
+      final monthYear = '${getMonthName(date.month)} ${date.year}';
       grouped.putIfAbsent(monthYear, () => []).add(transaction);
     }
 
     return grouped;
+  }
+
+  void _loadTransactions() async {
+    try {
+      final transactions =
+          await Provider.of<TransactionProvider>(
+            context,
+            listen: false,
+          ).getTransactions();
+
+      setState(() {
+        _allTransactions = transactions;
+        _transactionsFuture = Future.value(transactions);
+      });
+    } catch (error) {
+      setState(() {
+        _transactionsFuture = Future.error(error);
+      });
+    }
+  }
+
+  void _showFilterModal() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return FilterModal(
+          currentFilter: _filterCategory,
+          currentMonthFilter: _filterMonth,
+          onCategoryFilterApplied: (newCategoryFilter) {
+            setState(() {
+              _filterCategory = newCategoryFilter;
+              _applyFilter();
+            });
+          },
+          onMonthFilterApplied: (newMonthFilter) {
+            setState(() {
+              _filterMonth = newMonthFilter;
+              _applyFilter();
+            });
+          },
+        );
+      },
+    );
   }
 }
