@@ -5,8 +5,10 @@ import 'package:tech_challenge_flutter/models/auth_provider.dart';
 import 'package:tech_challenge_flutter/models/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
-import 'package:tech_challenge_flutter/utils/format_date.dart';
+import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
+import 'package:tech_challenge_flutter/widgets/month_header.dart';
+import 'package:tech_challenge_flutter/widgets/transaction_item.dart';
 
 import '../models/transaction.dart';
 
@@ -142,19 +144,17 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      _buildMonthHeader(entry.key),
-                                      ...entry.value
-                                          .map(
-                                            (transaction) => _buildTransaction(
-                                              transaction.description,
-                                              formatDate(
-                                                transaction.date.toDate(),
-                                              ),
-                                              transaction.value,
-                                              transaction.isIncome,
-                                            ),
-                                          )
-                                          .toList(),
+                                      MonthHeader(month: entry.key),
+                                      ...entry.value.map(
+                                        (transaction) => TransactionItem(
+                                          description: transaction.description,
+                                          date: formatDate(
+                                            transaction.date.toDate(),
+                                          ),
+                                          value: transaction.value,
+                                          isIncome: transaction.isIncome,
+                                        ),
+                                      ),
                                     ],
                                   );
                                 }).toList(),
