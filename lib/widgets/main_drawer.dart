@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:tech_challenge_flutter/models/auth_provider.dart';
+import 'package:tech_challenge_flutter/models/auth_exception.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
 class MainDrawer extends StatelessWidget {
@@ -6,12 +9,12 @@ class MainDrawer extends StatelessWidget {
 
   Widget _createIcon(IconData icon, String label, VoidCallback onTap) {
     return ListTile(
-      leading: Icon(icon, size: 26),
+      leading: Icon(icon, size: 24),
       title: Text(
         label,
         style: TextStyle(
           fontFamily: 'RobotoCondensed',
-          fontSize: 24,
+          fontSize: 20,
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -21,16 +24,39 @@ class MainDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AuthProvider auth = Provider.of(context, listen: false);
+
+    Future<void> logout() async {
+      try {
+        await auth.logout();
+        Navigator.of(context).pushReplacementNamed(AppRoutes.SPLASH);
+      } on AuthException catch (e) {
+        print(e);
+      }
+    }
+
     return Drawer(
       child: Column(
         children: [
           Container(
-            height: 100,
+            // height: 140,
             width: double.infinity,
-            padding: EdgeInsets.all(20),
+            padding: EdgeInsets.only(top: 40, bottom: 20),
             color: Theme.of(context).colorScheme.primary,
             alignment: Alignment.bottomCenter,
-            child: Image.asset('assets/images/logo.png'),
+            child: Column(
+              children: [
+                Image.asset('assets/images/logo.png'),
+                SizedBox(height: 10),
+                Text(
+                  'Olá, ${auth.user?.displayName ?? auth.user?.email}!',
+                  style: TextStyle(
+                    color: Theme.of(context).canvasColor,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
           ),
 
           SizedBox(height: 20),
@@ -38,7 +64,7 @@ class MainDrawer extends StatelessWidget {
           _createIcon(
             Icons.dashboard,
             'Home',
-            () => Navigator.of(context).pushReplacementNamed(AppRoutes.HOME),
+            () => Navigator.of(context).pushReplacementNamed(AppRoutes.SPLASH),
           ),
           _createIcon(
             Icons.list_alt,
@@ -57,7 +83,8 @@ class MainDrawer extends StatelessWidget {
             endIndent: 20,
           ),
 
-          _createIcon(Icons.logout, 'Sair', () {}),
+          // _createIcon(Icons.settings, 'Configurações', null),
+          _createIcon(Icons.logout, 'Sair', logout),
         ],
       ),
     );

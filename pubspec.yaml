@@ -10,7 +10,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   cupertino_icons: ^1.0.8
+  provider: ^6.1.5
+  flutter_dotenv: ^5.2.1
+  firebase_core: ^3.13.0
+  firebase_storage: ^12.4.5
+  cloud_firestore: ^5.6.7
+  firebase_auth: ^5.5.3
+  intl: ^0.19.0
+  uuid: ^4.5.1
+  path: ^1.9.1
+  image_picker: ^1.1.2
+  flutter_image_compress: ^2.1.0
 
 dev_dependencies:
   flutter_test:
