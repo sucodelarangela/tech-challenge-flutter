@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/components/filter_modal.dart';
+import 'package:tech_challenge_flutter/components/filter/filter_modal.dart';
 import 'package:tech_challenge_flutter/models/auth_provider.dart';
 import 'package:tech_challenge_flutter/models/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
@@ -46,14 +46,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               color:
                   _filterCategory != null || _filterMonth != null
                       ? Colors.blue
-                      : null,
+                      : Colors.white,
             ),
           ),
-          if (_filterCategory != null || _filterMonth != null)
-            IconButton(
-              onPressed: _clearFilter,
-              icon: const Icon(Icons.filter_alt_off),
-            ),
           IconButton(
             onPressed: () {
               Navigator.of(context).pushNamed(AppRoutes.TRANSACTION_FORM);
