@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/models/auth_provider.dart';
-import 'package:tech_challenge_flutter/models/auth_exception.dart';
+import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
+import 'package:tech_challenge_flutter/core/models/auth_exception.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
 class MainDrawer extends StatelessWidget {
@@ -49,7 +49,7 @@ class MainDrawer extends StatelessWidget {
                 Image.asset('assets/images/logo.png'),
                 SizedBox(height: 10),
                 Text(
-                  'Olá, ${auth.user?.displayName ?? auth.user?.email}!',
+                  'Olá, ${auth.user?.name ?? auth.user?.email}!',
                   style: TextStyle(
                     color: Theme.of(context).canvasColor,
                     fontSize: 16,

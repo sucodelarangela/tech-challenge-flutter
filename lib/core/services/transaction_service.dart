@@ -3,13 +3,12 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart' as path;
-import 'package:tech_challenge_flutter/models/transaction.dart';
-import 'package:tech_challenge_flutter/models/user_balance.dart';
+import 'package:tech_challenge_flutter/core/models/transaction.dart';
+import 'package:tech_challenge_flutter/core/models/user_balance.dart';
 import 'package:uuid/uuid.dart';
 
-class TransactionProvider with ChangeNotifier {
+class TransactionService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -18,10 +17,7 @@ class TransactionProvider with ChangeNotifier {
   // Tam. máximo do arquivo
   static const int _maxImageSize = 500 * 1024; // 0.5MB em bytes
 
-  UserBalance? _userBalance;
-
-  UserBalance? get userBalance => _userBalance;
-
+  // Salvar uma transação
   Future<void> saveTransaction(Map<String, Object> data) async {
     try {
       final user = _auth.currentUser;
@@ -72,14 +68,13 @@ class TransactionProvider with ChangeNotifier {
       });
 
       await _updateBalance(isIncome, value);
-
-      notifyListeners();
     } catch (e) {
       print('Erro ao salvar a transação: $e');
       throw e;
     }
   }
 
+  // Atualizar o saldo do usuário
   Future<void> _updateBalance(bool isIncome, double value) async {
     try {
       final user = _auth.currentUser;
@@ -114,31 +109,27 @@ class TransactionProvider with ChangeNotifier {
           'lastUpdated': Timestamp.now(),
         });
       }
-
-      // Carregar os dados atualizados
-      await loadBalance();
     } catch (e) {
       print('Erro ao atualizar saldo: $e');
       throw e;
     }
   }
 
-  Future<void> loadBalance() async {
+  // Carregar o saldo do usuário
+  Future<UserBalance?> getBalance() async {
     try {
       final user = _auth.currentUser;
       if (user == null) {
-        _userBalance = null;
-        notifyListeners();
-        return;
+        return null;
       }
 
       final docSnapshot =
           await _firestore.collection('users').doc(user.uid).get();
 
       if (docSnapshot.exists) {
-        _userBalance = UserBalance.fromMap(docSnapshot.data()!);
+        return UserBalance.fromMap(docSnapshot.data()!);
       } else {
-        _userBalance = UserBalance(
+        return UserBalance(
           balance: 0.0,
           totalIncome: 0.0,
           totalExpenses: 0.0,
@@ -146,21 +137,19 @@ class TransactionProvider with ChangeNotifier {
           lastUpdated: DateTime.now(),
         );
       }
-
-      notifyListeners();
     } catch (e) {
       print('Erro ao carregar saldo: $e');
-      _userBalance = UserBalance(
+      return UserBalance(
         balance: 0.0,
         totalIncome: 0.0,
         totalExpenses: 0.0,
         email: '',
         lastUpdated: DateTime.now(),
       );
-      notifyListeners();
     }
   }
 
+  // Upload de imagem para o Firebase Storage
   Future<String> _uploadImage(File imageFile) async {
     try {
       // Criar um nome único para o arquivo
@@ -183,6 +172,7 @@ class TransactionProvider with ChangeNotifier {
     }
   }
 
+  // Buscar todas as transações do usuário
   Future<List<TransactionModel>> getTransactions() async {
     try {
       final user = _auth.currentUser;
@@ -206,6 +196,7 @@ class TransactionProvider with ChangeNotifier {
     }
   }
 
+  // Excluir uma transação
   Future<void> deleteTransaction(String id) async {
     try {
       final user = _auth.currentUser;
@@ -249,11 +240,12 @@ class TransactionProvider with ChangeNotifier {
 
       // Atualizar o saldo (valor negativo para inverter a operação original)
       await _updateBalance(!isIncome, value);
-
-      notifyListeners();
     } catch (e) {
       print('Erro ao excluir transação: $e');
       throw e;
     }
   }
+
+  // Verificar se o usuário está autenticado
+  bool get isUserAuthenticated => _auth.currentUser != null;
 }

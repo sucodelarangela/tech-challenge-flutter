@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tech_challenge_flutter/components/filter/filter_modal.dart';
-import 'package:tech_challenge_flutter/models/auth_provider.dart';
-import 'package:tech_challenge_flutter/models/transaction_provider.dart';
+import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
+import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
@@ -10,7 +10,7 @@ import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 import 'package:tech_challenge_flutter/widgets/month_header.dart';
 import 'package:tech_challenge_flutter/widgets/transaction_item.dart';
 
-import '../models/transaction.dart';
+import '../core/models/transaction.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -224,79 +224,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     }
   }
 
-  Widget _buildMonthHeader(String month) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-      color: Colors.grey[100],
-      child: Text(
-        month,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 14,
-          color: Colors.black87,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTransaction(
-    String descricao,
-    String data,
-    double valor,
-    bool isIncome,
-  ) {
-    final textValue =
-        isIncome
-            ? 'R\$ ${valor.toStringAsFixed(2)}'
-            : '-R\$ ${valor.toStringAsFixed(2)}';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[300]!, width: 0.5),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                descricao,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                data,
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                textValue,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isIncome ? Colors.green[700] : Colors.red[700],
-                ),
-              ),
-              const SizedBox(height: 4),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   void _clearFilter() {
     setState(() {
       _filterCategory = null;
@@ -325,7 +252,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           await Provider.of<TransactionProvider>(
             context,
             listen: false,
-          ).getTransactions();
+          ).loadTransactions();
 
       setState(() {
         _allTransactions = transactions;
