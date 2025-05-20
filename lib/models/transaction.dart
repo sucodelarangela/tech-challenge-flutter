@@ -7,7 +7,7 @@ class TransactionModel {
   final double value;
   final String category;
   final Timestamp date;
-  final String image; // URL da imagem ou string vazia
+  final String image;
   final bool isIncome;
   final Timestamp createdAt;
 
