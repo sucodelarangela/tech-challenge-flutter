@@ -6,11 +6,15 @@
 tech_challenge_flutter/
 ├── android/                - Estrutura de projeto nativo Android
 ├── ios/                    - Estrutura de projeto nativo iOS
-├── lib/                    - Contém todos os nossos arquivos .dart
-│   └── models/             - Contém as classes de modelos de dados
-│   └── screens/            - Contém as telas principais Flutter
-│   └── utils/              - Contém arquivos de rotas e utilitários
-│   └── widgets/            - Contém componentes Flutter
+├── lib/                    - Todos os arquivos da aplicação
+│   └── components/         - Componentes reutilizáveis
+│   └── core/
+│   │   └── models/         - Classes de modelos de dados
+│   │   └── providers/      - Gerenciamento de estado
+│   │   └── providers/      - Conexão com banco de dados Firebase
+│   └── screens/            - as telas principais Flutter
+│   └── utils/              - arquivos de rotas e utilitários
+│   └── widgets/            - Widgets reutilizáveis
 │   └── main.dart           - Ponto de entrada visual da aplicação
 ├── linux/                  - Estrutura de projeto nativo Linux
 ├── macos/                  - Estrutura de projeto nativo macOS
