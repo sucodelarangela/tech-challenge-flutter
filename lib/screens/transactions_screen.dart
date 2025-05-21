@@ -9,6 +9,7 @@ import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 import 'package:tech_challenge_flutter/widgets/month_header.dart';
 import 'package:tech_challenge_flutter/widgets/transaction_item.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../core/models/transaction.dart';
 
@@ -37,7 +38,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transações'),
-        centerTitle: true,
         actions: [
           IconButton(
             onPressed: _showFilterModal,
@@ -135,22 +135,59 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             physics: const BouncingScrollPhysics(),
                             children:
                                 groupedTransactions.entries.map((entry) {
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      MonthHeader(month: entry.key),
-                                      ...entry.value.map(
-                                        (transaction) => TransactionItem(
-                                          description: transaction.description,
-                                          date: formatDate(
-                                            transaction.date.toDate(),
+                                  return SlidableAutoCloseBehavior(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        MonthHeader(month: entry.key),
+                                        ...entry.value.map(
+                                          (transaction) => Slidable(
+                                            key: ValueKey(transaction.id),
+                                            endActionPane: ActionPane(
+                                              motion: const ScrollMotion(),
+                                              children: [
+                                                SlidableAction(
+                                                  onPressed: (_) {},
+                                                  backgroundColor:
+                                                      Theme.of(
+                                                        context,
+                                                      ).colorScheme.error,
+                                                  foregroundColor: Colors.white,
+                                                  icon: Icons.delete,
+                                                  label: 'Excluir',
+                                                ),
+                                                SlidableAction(
+                                                  onPressed: (_) {
+                                                    Navigator.of(
+                                                      context,
+                                                    ).pushNamed(
+                                                      AppRoutes
+                                                          .TRANSACTION_FORM,
+                                                      arguments: transaction,
+                                                    );
+                                                  },
+                                                  backgroundColor:
+                                                      Colors.cyan.shade700,
+                                                  foregroundColor: Colors.white,
+                                                  icon: Icons.edit,
+                                                  label: 'Editar',
+                                                ),
+                                              ],
+                                            ),
+                                            child: TransactionItem(
+                                              description:
+                                                  transaction.description,
+                                              date: formatDate(
+                                                transaction.date.toDate(),
+                                              ),
+                                              value: transaction.value,
+                                              isIncome: transaction.isIncome,
+                                            ),
                                           ),
-                                          value: transaction.value,
-                                          isIncome: transaction.isIncome,
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   );
                                 }).toList(),
                           ),
@@ -199,9 +236,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   String _buildEmptyListMessage() {
     if (_filterCategory != null && _filterMonth != null) {
-      return 'Nenhuma transação encontrada para "${_filterCategory}" em ${getMonthName(_filterMonth!)}';
+      return 'Nenhuma transação encontrada para "$_filterCategory" em ${getMonthName(_filterMonth!)}';
     } else if (_filterCategory != null) {
-      return 'Nenhuma transação encontrada para "${_filterCategory}"';
+      return 'Nenhuma transação encontrada para "$_filterCategory"';
     } else if (_filterMonth != null) {
       return 'Nenhuma transação encontrada para ${getMonthName(_filterMonth!)}';
     } else {

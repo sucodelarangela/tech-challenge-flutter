@@ -26,28 +26,34 @@ class TransactionService {
         throw Exception('Usuário não autenticado');
       }
 
-      // Verificamos se temos uma imagem para upload
-      if (data['image'] != null) {
+      // Processamento da imagem
+      final String? imagePath = data['image'] as String?;
+      if (imagePath != null && imagePath.isNotEmpty) {
         final String imagePath = data['image'] as String;
-        final File imageFile = File(imagePath);
 
-        // Verificar o tamanho do arquivo
-        final int fileSize = await imageFile.length();
-        if (fileSize > _maxImageSize) {
-          throw Exception('A imagem deve ter no máximo 0.5MB');
+        if (imagePath.startsWith('http')) {
+          data['image'] = imagePath;
+        } else {
+          final File imageFile = File(imagePath);
+
+          // Verificar o tamanho do arquivo
+          final int fileSize = await imageFile.length();
+          if (fileSize > _maxImageSize) {
+            throw Exception('A imagem deve ter no máximo 0.5MB');
+          }
+
+          // Fazer upload da imagem para o Firebase Storage
+          final String imageUrl = await _uploadImage(imageFile);
+
+          // Substituir o caminho da imagem local pela URL do Storage
+          data['image'] = imageUrl;
         }
-
-        // Fazer upload da imagem para o Firebase Storage
-        final String imageUrl = await _uploadImage(imageFile);
-
-        // Substituir o caminho da imagem local pela URL do Storage
-        data['image'] = imageUrl;
       } else {
         // Se não tiver imagem, definir como string vazia
         data['image'] = '';
       }
 
-      // Converter o DateTime para Timestamp do Firestore
+      // Gerenciamento da data
       if (data['date'] is DateTime) {
         data['date'] = Timestamp.fromDate(data['date'] as DateTime);
       }
@@ -55,8 +61,9 @@ class TransactionService {
       final isIncome = data['category'] == 'Entrada';
       final value = data['value'] as double;
 
-      // Adicionar o documento no Firestore
-      await _firestore.collection('transactions').add({
+      final String? documentId = data['id'] as String?;
+
+      final transactionData = {
         'userId': user.uid,
         'description': data['description'],
         'value': data['value'],
@@ -65,7 +72,18 @@ class TransactionService {
         'image': data['image'],
         'isIncome': isIncome,
         'createdAt': Timestamp.now(),
-      });
+      };
+
+      if (documentId != null && documentId.isNotEmpty) {
+        // Editar o documento no Firestore
+        await _firestore
+            .collection('transactions')
+            .doc(documentId)
+            .update(transactionData);
+      } else {
+        // Adicionar o documento no Firestore
+        await _firestore.collection('transactions').add(transactionData);
+      }
 
       await _updateBalance(isIncome, value);
     } catch (e) {

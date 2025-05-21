@@ -3,11 +3,14 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:tech_challenge_flutter/core/models/transaction.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/widgets/adaptative_date_picker.dart';
 
 class TransactionFormScreen extends StatefulWidget {
-  const TransactionFormScreen({super.key});
+  final TransactionModel? transaction;
+
+  const TransactionFormScreen({super.key, this.transaction});
 
   @override
   State<TransactionFormScreen> createState() => _TransactionFormScreenState();
@@ -18,13 +21,62 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   final _categoryFocus = FocusNode();
 
   final ImagePicker _picker = ImagePicker();
-  final DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = DateTime.now();
   final _formKey = GlobalKey<FormState>();
   final _formData = <String, Object>{};
-  File _image = File('');
+
+  File? _imageFile;
+  String _imageUrl = '';
+  bool _isImageFromNetwork = false;
 
   bool _isLoading = false;
   static const int _maxImageSize = 1 * 1024 * 1024;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.transaction != null) {
+      _formData['description'] = widget.transaction!.description;
+      _formData['value'] = widget.transaction!.value;
+      _formData['category'] = widget.transaction!.category;
+      _formData['date'] = widget.transaction!.date;
+
+      // Verificar se tem imagem
+      if (widget.transaction!.image.isNotEmpty) {
+        // É uma URL de imagem do Firebase
+        _imageUrl = widget.transaction!.image;
+        _isImageFromNetwork = true;
+      }
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_formData.isEmpty) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args != null) {
+        final transaction = args as TransactionModel;
+        _formData['id'] = transaction.id;
+        _formData['description'] = transaction.description;
+        _formData['value'] = transaction.value;
+        _formData['category'] = transaction.category;
+        _formData['image'] = transaction.image;
+        _formData['date'] = transaction.date.toDate();
+        _selectedDate = transaction.date.toDate();
+
+        if (transaction.image.startsWith('http')) {
+          _imageUrl = transaction.image;
+          _isImageFromNetwork = true;
+          _imageFile = null;
+        } else if (transaction.image.isNotEmpty) {
+          _imageFile = File(transaction.image);
+          _isImageFromNetwork = false;
+          _imageUrl = '';
+        }
+      }
+    }
+  }
 
   // CLEANUP
   @override
@@ -43,6 +95,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       if (_pickedFile != null) {
         final File selectedImage = File(_pickedFile.path);
         final int fileSize = await selectedImage.length();
+        _isImageFromNetwork = false;
+        _imageUrl = '';
 
         if (fileSize > _maxImageSize) {
           _showErrorDialog(
@@ -53,7 +107,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         }
 
         setState(() {
-          _image = File(_pickedFile.path);
+          _imageFile = File(_pickedFile.path);
         });
         _formData['image'] = _pickedFile.path;
       }
@@ -95,16 +149,24 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     });
 
     try {
+      if (_imageFile != null) {
+        _formData['image'] = _imageFile!.path;
+      }
+      // Se for uma edição e tiver uma imagem da rede, mantemos a URL
+      else if (_isImageFromNetwork && _imageUrl.isNotEmpty) {
+        _formData['image'] = _imageUrl;
+      }
+
       await Provider.of<TransactionProvider>(
         context,
         listen: false,
       ).saveTransaction(_formData);
 
-      Navigator.of(context).pop();
-
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Transação salva com sucesso!')));
+
+      Navigator.of(context).pop();
     } catch (e) {
       await showDialog<void>(
         context: context,
@@ -129,9 +191,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final appBarTitle = args != null ? 'Editar Transação' : 'Nova Transação';
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Nova Transação'),
+        title: Text(appBarTitle),
         actions: [IconButton(onPressed: _submitForm, icon: Icon(Icons.save))],
       ),
 
@@ -190,6 +255,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                           labelText: 'Selecione uma categoria',
                         ),
                         focusNode: _categoryFocus,
+                        value: _formData['category'],
                         items:
                             ['Entrada', 'Saída']
                                 .map(
@@ -225,9 +291,56 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                             border: Border.all(color: Colors.grey, width: 1),
                           ),
                           child:
-                              _image.path.isEmpty
-                                  ? Center(child: Text('Adicionar imagem'))
-                                  : Image.file(_image, fit: BoxFit.cover),
+                              _imageFile != null
+                                  // Exibir imagem local
+                                  ? Image.file(_imageFile!, fit: BoxFit.cover)
+                                  : _isImageFromNetwork && _imageUrl.isNotEmpty
+                                  ? Image.network(
+                                    _imageUrl,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (
+                                      context,
+                                      child,
+                                      loadingProgress,
+                                    ) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Center(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.error, size: 40),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'Erro ao carregar imagem',
+                                              style: TextStyle(
+                                                color:
+                                                    Theme.of(
+                                                      context,
+                                                    ).colorScheme.error,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  )
+                                  : const Center(
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.camera_alt, size: 40),
+                                        SizedBox(height: 8),
+                                        Text('Adicionar imagem'),
+                                      ],
+                                    ),
+                                  ),
                         ),
                       ),
                     ],
