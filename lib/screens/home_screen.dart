@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
-import 'package:tech_challenge_flutter/utils/app_routes.dart';
+import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -33,7 +33,12 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.of(context).pushNamed(AppRoutes.TRANSACTION_FORM);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => TransactionFormScreen(),
+                ),
+              );
             },
             icon: Icon(Icons.add),
           ),

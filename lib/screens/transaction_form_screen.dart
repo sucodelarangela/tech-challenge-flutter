@@ -9,8 +9,13 @@ import 'package:tech_challenge_flutter/widgets/adaptative_date_picker.dart';
 
 class TransactionFormScreen extends StatefulWidget {
   final TransactionModel? transaction;
+  final VoidCallback? reloadTransactions;
 
-  const TransactionFormScreen({super.key, this.transaction});
+  const TransactionFormScreen({
+    super.key,
+    this.transaction,
+    this.reloadTransactions,
+  });
 
   @override
   State<TransactionFormScreen> createState() => _TransactionFormScreenState();
@@ -162,11 +167,13 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         listen: false,
       ).saveTransaction(_formData);
 
+      widget.reloadTransactions?.call();
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Transação salva com sucesso!')));
 
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(true);
     } catch (e) {
       await showDialog<void>(
         context: context,

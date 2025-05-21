@@ -4,7 +4,7 @@ import 'package:tech_challenge_flutter/components/filter/filter_modal.dart';
 import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
-import 'package:tech_challenge_flutter/utils/app_routes.dart';
+import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
 import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 import 'package:tech_challenge_flutter/widgets/month_header.dart';
@@ -51,7 +51,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           ),
           IconButton(
             onPressed: () {
-              Navigator.of(context).pushNamed(AppRoutes.TRANSACTION_FORM);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => TransactionFormScreen(
+                        reloadTransactions: _loadTransactions,
+                      ),
+                ),
+              );
             },
             icon: const Icon(Icons.add),
           ),
@@ -148,7 +156,52 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                               motion: const ScrollMotion(),
                                               children: [
                                                 SlidableAction(
-                                                  onPressed: (_) {},
+                                                  onPressed: (_) async {
+                                                    final confirm = await showDialog<
+                                                      bool
+                                                    >(
+                                                      context: context,
+                                                      builder:
+                                                          (ctx) => AlertDialog(
+                                                            title: const Text(
+                                                              'Excluir Transação?',
+                                                            ),
+                                                            content: const Text(
+                                                              'Tem certeza de que quer remover a transação? Esta ação é irreversível.',
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed:
+                                                                    () => Navigator.of(
+                                                                      context,
+                                                                    ).pop(
+                                                                      false,
+                                                                    ),
+                                                                child:
+                                                                    const Text(
+                                                                      'Não',
+                                                                    ),
+                                                              ),
+                                                              TextButton(
+                                                                onPressed:
+                                                                    () => Navigator.of(
+                                                                      context,
+                                                                    ).pop(true),
+                                                                child:
+                                                                    const Text(
+                                                                      'Sim',
+                                                                    ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                    );
+
+                                                    if (confirm == true) {
+                                                      _deleteTransaction(
+                                                        transaction.id,
+                                                      );
+                                                    }
+                                                  },
                                                   backgroundColor:
                                                       Theme.of(
                                                         context,
@@ -159,12 +212,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                                 ),
                                                 SlidableAction(
                                                   onPressed: (_) {
-                                                    Navigator.of(
+                                                    Navigator.push(
                                                       context,
-                                                    ).pushNamed(
-                                                      AppRoutes
-                                                          .TRANSACTION_FORM,
-                                                      arguments: transaction,
+                                                      MaterialPageRoute(
+                                                        builder:
+                                                            (
+                                                              context,
+                                                            ) => TransactionFormScreen(
+                                                              transaction:
+                                                                  transaction,
+                                                              reloadTransactions:
+                                                                  _loadTransactions,
+                                                            ),
+                                                      ),
                                                     );
                                                   },
                                                   backgroundColor:
@@ -295,6 +355,24 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         _allTransactions = transactions;
         _transactionsFuture = Future.value(transactions);
       });
+    } catch (error) {
+      setState(() {
+        _transactionsFuture = Future.error(error);
+      });
+    }
+  }
+
+  void _deleteTransaction(String id) async {
+    try {
+      final _provider = Provider.of<TransactionProvider>(
+        context,
+        listen: false,
+      );
+      await _provider.deleteTransaction(id);
+      _loadTransactions();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Transação excluída com sucesso!')),
+      );
     } catch (error) {
       setState(() {
         _transactionsFuture = Future.error(error);

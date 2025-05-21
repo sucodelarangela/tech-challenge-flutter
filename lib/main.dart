@@ -63,7 +63,6 @@ class MyApp extends StatelessWidget {
         routes: {
           AppRoutes.SPLASH: (ctx) => SplashScreen(),
           AppRoutes.TRANSACTIONS: (ctx) => const TransactionsScreen(),
-          AppRoutes.TRANSACTION_FORM: (ctx) => const TransactionFormScreen(),
         },
 
         debugShowCheckedModeBanner: false,
