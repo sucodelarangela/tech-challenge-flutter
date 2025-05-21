@@ -1,4 +1,4 @@
-import '../models/transaction.dart';
+import '../core/models/transaction.dart';
 
 String formatCurrency(double value, bool isIncome) {
   return isIncome
