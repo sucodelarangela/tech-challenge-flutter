@@ -1,16 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tech_challenge_flutter/core/models/account_user.dart';
 import 'package:tech_challenge_flutter/core/models/auth_exception.dart';
+import 'package:tech_challenge_flutter/utils/capitalize.dart';
 
 class AuthService {
   final FirebaseAuth _firebase = FirebaseAuth.instance;
 
   // Converter User do Firebase para seu modelo AccountUser
   AccountUser? _toAccountUser(User user) {
+    final name =
+        user.displayName != null && user.displayName!.trim().isNotEmpty
+            ? user.displayName
+            : user.email!.split('@')[0];
+
     return AccountUser(
       id: user.uid,
       email: user.email!,
-      name: user.displayName ?? user.email!.split('@')[0],
+      name: capitalize(name!),
     );
   }
 
