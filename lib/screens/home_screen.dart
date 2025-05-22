@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
@@ -27,6 +28,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final userBalance = provider.userBalance;
 
+    userBalance == null
+        ? context.loaderOverlay.show()
+        : context.loaderOverlay.hide();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),
@@ -42,15 +47,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
       drawer: MainDrawer(),
 
-      body:
-          userBalance == null
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                children: [
-                  Text('PAULA, ajustar com o que você já fez'),
-                  Text('SALDO: ${provider.userBalance!.balance.toString()}'),
-                ],
-              ),
+      body: Column(
+        children: [
+          Text('PAULA, ajustar com o que você já fez'),
+          Text('SALDO: ${provider.userBalance?.balance.toString() ?? 0}'),
+        ],
+      ),
     );
   }
 }

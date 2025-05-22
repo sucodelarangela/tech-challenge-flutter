@@ -1,4 +1,9 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:tech_challenge_flutter/core/models/transaction.dart';
 import 'package:tech_challenge_flutter/core/models/user_balance.dart';
 import 'package:tech_challenge_flutter/core/services/transaction_service.dart';
@@ -107,5 +112,44 @@ class TransactionProvider with ChangeNotifier {
   // Método para limpar erros manualmente (opcional)
   void clearError() {
     _setError(null);
+  }
+
+  // Download da imagem
+  Future<String?> downloadImage(String imageUrl, String fileName) async {
+    _setLoading(true);
+
+    try {
+      if (Platform.isAndroid) {
+        await Permission.storage.request().isGranted;
+      } else {
+        await Permission.photos.request().isGranted;
+      }
+
+      // Baixar usando Dio
+      final response = await Dio().get(
+        imageUrl,
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      final Uint8List bytes = Uint8List.fromList(response.data);
+
+      final result = await ImageGallerySaverPlus.saveImage(
+        bytes,
+        quality: 100,
+        name: "downloaded_image_${DateTime.now().millisecondsSinceEpoch}",
+      );
+
+      if (result['isSuccess']) {
+        return 'Imagem salva na galeria com sucesso!';
+      } else {
+        print('Falha no download, status code: ${response.statusCode}');
+        return 'Falha no download, status code: ${response.statusCode}';
+      }
+    } catch (e) {
+      print('Erro ao baixar imagem: $e');
+      return 'Falha no download, status code: ${e.toString()}';
+    } finally {
+      _setLoading(false);
+    }
   }
 }

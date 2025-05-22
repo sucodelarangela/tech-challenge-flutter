@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:tech_challenge_flutter/components/filter/filter_modal.dart';
 import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
@@ -24,6 +25,25 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   final ScrollController _scrollController = ScrollController();
   String? _filterCategory;
   int? _filterMonth;
+  bool isLocalLoading = true;
+
+  String getFilename(TransactionModel transaction) {
+    final name = transaction.description.replaceAll(' ', '_');
+    final date = transaction.date.toDate().toString().replaceAll('/', '_');
+    return '$date-$name';
+  }
+
+  void _downloadImage(String imageUrl, String fileName) async {
+    final _provider = Provider.of<TransactionProvider>(context, listen: false);
+    setState(() => isLocalLoading = true);
+    final result = await _provider.downloadImage(imageUrl, fileName);
+    if (result != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result)));
+    }
+    setState(() => isLocalLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,9 +110,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
               padding: const EdgeInsets.all(16.0),
               child: Consumer<TransactionProvider>(
                 builder: (ctx, transactionProvider, _) {
-                  if (transactionProvider.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
+                  transactionProvider.isLoading
+                      ? ctx.loaderOverlay.show()
+                      : ctx.loaderOverlay.hide();
 
                   if (transactionProvider.hasError) {
                     return Center(
@@ -219,7 +239,13 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                                     .image
                                                     .isNotEmpty)
                                                   SlidableAction(
-                                                    onPressed: (_) {},
+                                                    onPressed:
+                                                        (_) => _downloadImage(
+                                                          transaction.image,
+                                                          getFilename(
+                                                            transaction,
+                                                          ),
+                                                        ),
                                                     backgroundColor:
                                                         Colors.green,
                                                     foregroundColor:
@@ -338,7 +364,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         SnackBar(content: Text('Transação excluída com sucesso!')),
       );
     } catch (error) {
-      // TODO: Verificar como retornar o erro do service
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao excluir transação')));
