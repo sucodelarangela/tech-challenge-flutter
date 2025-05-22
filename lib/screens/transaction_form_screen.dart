@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:tech_challenge_flutter/core/models/transaction.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
@@ -174,159 +175,142 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     final args = ModalRoute.of(context)?.settings.arguments;
     final appBarTitle = args != null ? 'Editar Transação' : 'Nova Transação';
 
+    final isLoading = Provider.of<TransactionProvider>(context).isLoading;
+    isLoading ? context.loaderOverlay.show() : context.loaderOverlay.hide();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(appBarTitle),
         actions: [IconButton(onPressed: _submitForm, icon: Icon(Icons.save))],
       ),
 
-      body:
-          _isLoading
-              ? Center(child: CircularProgressIndicator())
-              : Padding(
-                padding: const EdgeInsets.all(15),
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    children: [
-                      TextFormField(
-                        initialValue: _formData['description']?.toString(),
-                        decoration: InputDecoration(labelText: 'Descrição'),
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context).requestFocus(_valueFocus);
-                        },
-                        onSaved:
-                            (description) =>
-                                _formData['description'] = description ?? '',
-                        validator: (_description) {
-                          final description = _description ?? '';
-                          if (description.trim().isEmpty) {
-                            return 'Campo obrigatório';
-                          }
-                          if (description.trim().length < 3) {
-                            return 'Descrição precisa de, no mínimo, 3 caracteres';
-                          }
-                          return null;
-                        },
-                      ),
+      body: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                initialValue: _formData['description']?.toString(),
+                decoration: InputDecoration(labelText: 'Descrição'),
+                textInputAction: TextInputAction.next,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_valueFocus);
+                },
+                onSaved:
+                    (description) =>
+                        _formData['description'] = description ?? '',
+                validator: (_description) {
+                  final description = _description ?? '';
+                  if (description.trim().isEmpty) {
+                    return 'Campo obrigatório';
+                  }
+                  if (description.trim().length < 3) {
+                    return 'Descrição precisa de, no mínimo, 3 caracteres';
+                  }
+                  return null;
+                },
+              ),
 
-                      TextFormField(
-                        initialValue: _formData['value']?.toString(),
-                        decoration: InputDecoration(labelText: 'Valor'),
-                        textInputAction: TextInputAction.next,
-                        keyboardType: TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        focusNode: _valueFocus,
-                        onSaved:
-                            (value) =>
-                                _formData['value'] = double.parse(value ?? '0'),
-                        validator: (_value) {
-                          final valueString = _value ?? '';
-                          final value = double.tryParse(valueString) ?? -1;
-                          if (value <= 0) return 'Informe um preço válido';
-                          return null;
-                        },
-                      ),
+              TextFormField(
+                initialValue: _formData['value']?.toString(),
+                decoration: InputDecoration(labelText: 'Valor'),
+                textInputAction: TextInputAction.next,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                focusNode: _valueFocus,
+                onSaved:
+                    (value) => _formData['value'] = double.parse(value ?? '0'),
+                validator: (_value) {
+                  final valueString = _value ?? '';
+                  final value = double.tryParse(valueString) ?? -1;
+                  if (value <= 0) return 'Informe um preço válido';
+                  return null;
+                },
+              ),
 
-                      DropdownButtonFormField(
-                        decoration: InputDecoration(
-                          labelText: 'Selecione uma categoria',
-                        ),
-                        focusNode: _categoryFocus,
-                        value: _formData['category'],
-                        items:
-                            ['Entrada', 'Saída']
-                                .map(
-                                  (opt) => DropdownMenuItem(
-                                    value: opt,
-                                    child: Text(opt),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged:
-                            (category) =>
-                                _formData['category'] = category ?? '',
-                        validator: (category) {
-                          if (category == null) {
-                            return 'Campo obrigatório';
-                          }
-                          return null;
-                        },
-                      ),
+              DropdownButtonFormField(
+                decoration: InputDecoration(
+                  labelText: 'Selecione uma categoria',
+                ),
+                focusNode: _categoryFocus,
+                value: _formData['category'],
+                items:
+                    ['Entrada', 'Saída']
+                        .map(
+                          (opt) =>
+                              DropdownMenuItem(value: opt, child: Text(opt)),
+                        )
+                        .toList(),
+                onChanged: (category) => _formData['category'] = category ?? '',
+                validator: (category) {
+                  if (category == null) {
+                    return 'Campo obrigatório';
+                  }
+                  return null;
+                },
+              ),
 
-                      AdaptativeDatePicker(
-                        selectedDate: _selectedDate,
-                        onDateChanged: (newDate) => _formData['date'] = newDate,
-                      ),
+              AdaptativeDatePicker(
+                selectedDate: _selectedDate,
+                onDateChanged: (newDate) => _formData['date'] = newDate,
+              ),
 
-                      InkWell(
-                        onTap: _pickImage,
-                        child: Container(
-                          height: 300,
-                          width: 300,
-                          margin: EdgeInsets.only(top: 10, left: 10),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey, width: 1),
-                          ),
-                          child:
-                              _imageFile != null
-                                  // Exibir imagem local
-                                  ? Image.file(_imageFile!, fit: BoxFit.cover)
-                                  : _isImageFromNetwork && _imageUrl.isNotEmpty
-                                  ? Image.network(
-                                    _imageUrl,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (
-                                      context,
-                                      child,
-                                      loadingProgress,
-                                    ) {
-                                      if (loadingProgress == null) return child;
-                                      return Center(
-                                        child: CircularProgressIndicator(),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Center(
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Icon(Icons.error, size: 40),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              'Erro ao carregar imagem',
-                                              style: TextStyle(
-                                                color:
-                                                    Theme.of(
-                                                      context,
-                                                    ).colorScheme.error,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  )
-                                  : const Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.camera_alt, size: 40),
-                                        SizedBox(height: 8),
-                                        Text('Adicionar imagem'),
-                                      ],
-                                    ),
-                                  ),
-                        ),
-                      ),
-                    ],
+              InkWell(
+                onTap: _pickImage,
+                child: Container(
+                  height: 300,
+                  width: 300,
+                  margin: EdgeInsets.only(top: 10, left: 10),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey, width: 1),
                   ),
+                  child:
+                      _imageFile != null
+                          // Exibir imagem local
+                          ? Image.file(_imageFile!, fit: BoxFit.cover)
+                          : _isImageFromNetwork && _imageUrl.isNotEmpty
+                          ? Image.network(
+                            _imageUrl,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(child: CircularProgressIndicator());
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.error, size: 40),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Erro ao carregar imagem',
+                                      style: TextStyle(
+                                        color:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          )
+                          : const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.camera_alt, size: 40),
+                                SizedBox(height: 8),
+                                Text('Adicionar imagem'),
+                              ],
+                            ),
+                          ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

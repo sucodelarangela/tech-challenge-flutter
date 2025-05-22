@@ -1,5 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
@@ -12,6 +14,10 @@ import 'package:tech_challenge_flutter/utils/app_routes.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   runApp(MyApp());
 }
 
@@ -61,9 +67,11 @@ class MyApp extends StatelessWidget {
 
         // ROTAS DE NAVEGAÇÃO
         routes: {
-          AppRoutes.SPLASH: (ctx) => SplashScreen(),
-          AppRoutes.TRANSACTIONS: (ctx) => const TransactionsScreen(),
-          AppRoutes.TRANSACTION_FORM: (ctx) => const TransactionFormScreen(),
+          AppRoutes.SPLASH: (ctx) => LoaderOverlay(child: const SplashScreen()),
+          AppRoutes.TRANSACTIONS:
+              (ctx) => LoaderOverlay(child: const TransactionsScreen()),
+          AppRoutes.TRANSACTION_FORM:
+              (ctx) => LoaderOverlay(child: const TransactionFormScreen()),
         },
 
         debugShowCheckedModeBanner: false,
