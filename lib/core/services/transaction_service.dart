@@ -22,8 +22,22 @@ class TransactionService {
     try {
       final user = _auth.currentUser;
 
-      if (user == null) {
-        throw Exception('Usuário não autenticado');
+      if (user == null) throw Exception('Usuário não autenticado');
+
+      final String? documentId = data['id'] as String?;
+      bool isEdit = documentId != null && documentId.isNotEmpty;
+
+      double? oldValue;
+      bool? oldIsIncome;
+
+      if (isEdit) {
+        final docSnapshot =
+            await _firestore.collection('transactions').doc(documentId).get();
+        if (docSnapshot.exists) {
+          final oldData = docSnapshot.data()!;
+          oldValue = (oldData['value'] as num).toDouble();
+          oldIsIncome = oldData['isIncome'] as bool;
+        }
       }
 
       // Processamento da imagem
@@ -61,8 +75,6 @@ class TransactionService {
       final isIncome = data['category'] == 'Entrada';
       final value = data['value'] as double;
 
-      final String? documentId = data['id'] as String?;
-
       final transactionData = {
         'userId': user.uid,
         'description': data['description'],
@@ -74,18 +86,27 @@ class TransactionService {
         'createdAt': Timestamp.now(),
       };
 
-      if (documentId != null && documentId.isNotEmpty) {
+      if (isEdit) {
         // Editar o documento no Firestore
         await _firestore
             .collection('transactions')
             .doc(documentId)
             .update(transactionData);
+
+        if (oldValue != null && oldIsIncome != null) {
+          await _updateBalance(
+            isIncome: isIncome,
+            value: value,
+            isEdit: true,
+            oldValue: oldValue,
+            oldIsIncome: oldIsIncome,
+          );
+        }
       } else {
         // Adicionar o documento no Firestore
         await _firestore.collection('transactions').add(transactionData);
+        await _updateBalance(isIncome: isIncome, value: value);
       }
-
-      await _updateBalance(isIncome, value);
     } catch (e) {
       print('Erro ao salvar a transação: $e');
       throw e;
@@ -93,43 +114,64 @@ class TransactionService {
   }
 
   // Atualizar o saldo do usuário
-  Future<void> _updateBalance(bool isIncome, double value) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return;
+  Future<void> _updateBalance({
+    required bool isIncome,
+    required double value,
+    bool isEdit = false,
+    double? oldValue,
+    bool? oldIsIncome,
+  }) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
 
-      // Referência para o documento de saldo do usuário
-      final balanceRef = _firestore.collection('users').doc(user.uid);
+    final balanceRef = _firestore.collection('users').doc(user.uid);
 
-      // Verificar se o documento já existe
-      final docSnapshot = await balanceRef.get();
-
-      if (docSnapshot.exists) {
-        // Atualizar o saldo existente
+    // Se é edição
+    if (isEdit && oldValue != null && oldIsIncome != null) {
+      if (oldIsIncome == isIncome) {
+        // Continua sendo entrada ou saída
         if (isIncome) {
           await balanceRef.update({
-            'balance': FieldValue.increment(value),
-            'totalIncome': FieldValue.increment(value),
+            'balance': FieldValue.increment(value - oldValue),
+            'totalIncome': FieldValue.increment(value - oldValue),
           });
         } else {
           await balanceRef.update({
-            'balance': FieldValue.increment(-value),
-            'totalExpenses': FieldValue.increment(value),
+            'balance': FieldValue.increment(oldValue - value),
+            'totalExpenses': FieldValue.increment(value - oldValue),
           });
         }
       } else {
-        // Criar um novo documento de saldo
-        await balanceRef.set({
-          'balance': isIncome ? value : -value,
-          'totalIncome': isIncome ? value : 0,
-          'totalExpenses': isIncome ? 0 : value,
-          'email': user.email,
-          'lastUpdated': Timestamp.now(),
+        // Mudou de entrada para saída ou vice-versa
+        if (isIncome) {
+          // Era saída, virou entrada
+          await balanceRef.update({
+            'balance': FieldValue.increment(oldValue + value),
+            'totalExpenses': FieldValue.increment(-oldValue),
+            'totalIncome': FieldValue.increment(value),
+          });
+        } else {
+          // Era entrada, virou saída
+          await balanceRef.update({
+            'balance': FieldValue.increment(-(oldValue + value)),
+            'totalIncome': FieldValue.increment(-oldValue),
+            'totalExpenses': FieldValue.increment(value),
+          });
+        }
+      }
+    } else {
+      // Se é criação
+      if (isIncome) {
+        await balanceRef.update({
+          'balance': FieldValue.increment(value),
+          'totalIncome': FieldValue.increment(value),
+        });
+      } else {
+        await balanceRef.update({
+          'balance': FieldValue.increment(-value),
+          'totalExpenses': FieldValue.increment(value),
         });
       }
-    } catch (e) {
-      print('Erro ao atualizar saldo: $e');
-      throw e;
     }
   }
 
@@ -257,7 +299,7 @@ class TransactionService {
       await _firestore.collection('transactions').doc(id).delete();
 
       // Atualizar o saldo (valor negativo para inverter a operação original)
-      await _updateBalance(!isIncome, value);
+      await _updateBalance(isIncome: !isIncome, value: value);
     } catch (e) {
       print('Erro ao excluir transação: $e');
       throw e;

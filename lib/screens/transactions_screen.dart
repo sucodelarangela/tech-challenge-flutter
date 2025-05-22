@@ -5,6 +5,7 @@ import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
 import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
+import 'package:tech_challenge_flutter/utils/app_routes.dart';
 import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 import 'package:tech_challenge_flutter/widgets/month_header.dart';
@@ -208,31 +209,38 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                                       ).colorScheme.error,
                                                   foregroundColor: Colors.white,
                                                   icon: Icons.delete,
-                                                  label: 'Excluir',
                                                 ),
                                                 SlidableAction(
                                                   onPressed: (_) {
-                                                    Navigator.push(
+                                                    Navigator.of(
                                                       context,
-                                                      MaterialPageRoute(
-                                                        builder:
-                                                            (
-                                                              context,
-                                                            ) => TransactionFormScreen(
-                                                              transaction:
-                                                                  transaction,
-                                                              reloadTransactions:
-                                                                  _loadTransactions,
-                                                            ),
-                                                      ),
+                                                    ).pushNamed(
+                                                      AppRoutes
+                                                          .TRANSACTION_FORM,
+                                                      arguments: {
+                                                        'transaction':
+                                                            transaction,
+                                                        'reloadTransactions':
+                                                            _loadTransactions,
+                                                      },
                                                     );
                                                   },
                                                   backgroundColor:
                                                       Colors.cyan.shade700,
                                                   foregroundColor: Colors.white,
                                                   icon: Icons.edit,
-                                                  label: 'Editar',
                                                 ),
+                                                if (transaction
+                                                    .image
+                                                    .isNotEmpty)
+                                                  SlidableAction(
+                                                    onPressed: (_) {},
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    icon: Icons.attach_file,
+                                                  ),
                                               ],
                                             ),
                                             child: TransactionItem(
@@ -243,6 +251,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                               ),
                                               value: transaction.value,
                                               isIncome: transaction.isIncome,
+                                              imageUrl: transaction.image,
                                             ),
                                           ),
                                         ),

@@ -8,14 +8,9 @@ import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart'
 import 'package:tech_challenge_flutter/widgets/adaptative_date_picker.dart';
 
 class TransactionFormScreen extends StatefulWidget {
-  final TransactionModel? transaction;
   final VoidCallback? reloadTransactions;
 
-  const TransactionFormScreen({
-    super.key,
-    this.transaction,
-    this.reloadTransactions,
-  });
+  const TransactionFormScreen({super.key, this.reloadTransactions});
 
   @override
   State<TransactionFormScreen> createState() => _TransactionFormScreenState();
@@ -38,30 +33,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   static const int _maxImageSize = 1 * 1024 * 1024;
 
   @override
-  void initState() {
-    super.initState();
-    if (widget.transaction != null) {
-      _formData['description'] = widget.transaction!.description;
-      _formData['value'] = widget.transaction!.value;
-      _formData['category'] = widget.transaction!.category;
-      _formData['date'] = widget.transaction!.date;
-
-      // Verificar se tem imagem
-      if (widget.transaction!.image.isNotEmpty) {
-        // É uma URL de imagem do Firebase
-        _imageUrl = widget.transaction!.image;
-        _isImageFromNetwork = true;
-      }
-    }
-  }
-
-  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_formData.isEmpty) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      if (args != null) {
-        final transaction = args as TransactionModel;
+      if (args != null && args is Map) {
+        final transaction = args['transaction'] as TransactionModel;
         _formData['id'] = transaction.id;
         _formData['description'] = transaction.description;
         _formData['value'] = transaction.value;
@@ -167,7 +144,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         listen: false,
       ).saveTransaction(_formData);
 
-      widget.reloadTransactions?.call();
+      _callReloadTransactions();
 
       ScaffoldMessenger.of(
         context,
@@ -193,6 +170,20 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       );
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  void _callReloadTransactions() {
+    // Tenta pelo construtor
+    if (widget.reloadTransactions != null) {
+      widget.reloadTransactions!();
+      return;
+    }
+    // Tenta pelos argumentos da rota
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args != null && args is Map && args['reloadTransactions'] != null) {
+      final Function reloadTransactions = args['reloadTransactions'];
+      reloadTransactions();
     }
   }
 
