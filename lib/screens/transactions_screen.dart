@@ -4,11 +4,13 @@ import 'package:tech_challenge_flutter/components/filter/filter_modal.dart';
 import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
+import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 import 'package:tech_challenge_flutter/widgets/month_header.dart';
 import 'package:tech_challenge_flutter/widgets/transaction_item.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 import '../core/models/transaction.dart';
 
@@ -37,7 +39,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transações'),
-        centerTitle: true,
         actions: [
           IconButton(
             onPressed: _showFilterModal,
@@ -51,7 +52,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           ),
           IconButton(
             onPressed: () {
-              Navigator.of(context).pushNamed(AppRoutes.TRANSACTION_FORM);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder:
+                      (context) => TransactionFormScreen(
+                        reloadTransactions: _loadTransactions,
+                      ),
+                ),
+              );
             },
             icon: const Icon(Icons.add),
           ),
@@ -135,22 +144,119 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                             physics: const BouncingScrollPhysics(),
                             children:
                                 groupedTransactions.entries.map((entry) {
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      MonthHeader(month: entry.key),
-                                      ...entry.value.map(
-                                        (transaction) => TransactionItem(
-                                          description: transaction.description,
-                                          date: formatDate(
-                                            transaction.date.toDate(),
+                                  return SlidableAutoCloseBehavior(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        MonthHeader(month: entry.key),
+                                        ...entry.value.map(
+                                          (transaction) => Slidable(
+                                            key: ValueKey(transaction.id),
+                                            endActionPane: ActionPane(
+                                              motion: const ScrollMotion(),
+                                              children: [
+                                                SlidableAction(
+                                                  onPressed: (_) async {
+                                                    final confirm = await showDialog<
+                                                      bool
+                                                    >(
+                                                      context: context,
+                                                      builder:
+                                                          (ctx) => AlertDialog(
+                                                            title: const Text(
+                                                              'Excluir Transação?',
+                                                            ),
+                                                            content: const Text(
+                                                              'Tem certeza de que quer remover a transação? Esta ação é irreversível.',
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed:
+                                                                    () => Navigator.of(
+                                                                      context,
+                                                                    ).pop(
+                                                                      false,
+                                                                    ),
+                                                                child:
+                                                                    const Text(
+                                                                      'Não',
+                                                                    ),
+                                                              ),
+                                                              TextButton(
+                                                                onPressed:
+                                                                    () => Navigator.of(
+                                                                      context,
+                                                                    ).pop(true),
+                                                                child:
+                                                                    const Text(
+                                                                      'Sim',
+                                                                    ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                    );
+
+                                                    if (confirm == true) {
+                                                      _deleteTransaction(
+                                                        transaction.id,
+                                                      );
+                                                    }
+                                                  },
+                                                  backgroundColor:
+                                                      Theme.of(
+                                                        context,
+                                                      ).colorScheme.error,
+                                                  foregroundColor: Colors.white,
+                                                  icon: Icons.delete,
+                                                ),
+                                                SlidableAction(
+                                                  onPressed: (_) {
+                                                    Navigator.of(
+                                                      context,
+                                                    ).pushNamed(
+                                                      AppRoutes
+                                                          .TRANSACTION_FORM,
+                                                      arguments: {
+                                                        'transaction':
+                                                            transaction,
+                                                        'reloadTransactions':
+                                                            _loadTransactions,
+                                                      },
+                                                    );
+                                                  },
+                                                  backgroundColor:
+                                                      Colors.cyan.shade700,
+                                                  foregroundColor: Colors.white,
+                                                  icon: Icons.edit,
+                                                ),
+                                                if (transaction
+                                                    .image
+                                                    .isNotEmpty)
+                                                  SlidableAction(
+                                                    onPressed: (_) {},
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                    foregroundColor:
+                                                        Colors.white,
+                                                    icon: Icons.attach_file,
+                                                  ),
+                                              ],
+                                            ),
+                                            child: TransactionItem(
+                                              description:
+                                                  transaction.description,
+                                              date: formatDate(
+                                                transaction.date.toDate(),
+                                              ),
+                                              value: transaction.value,
+                                              isIncome: transaction.isIncome,
+                                              imageUrl: transaction.image,
+                                            ),
                                           ),
-                                          value: transaction.value,
-                                          isIncome: transaction.isIncome,
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   );
                                 }).toList(),
                           ),
@@ -199,9 +305,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   String _buildEmptyListMessage() {
     if (_filterCategory != null && _filterMonth != null) {
-      return 'Nenhuma transação encontrada para "${_filterCategory}" em ${getMonthName(_filterMonth!)}';
+      return 'Nenhuma transação encontrada para "$_filterCategory" em ${getMonthName(_filterMonth!)}';
     } else if (_filterCategory != null) {
-      return 'Nenhuma transação encontrada para "${_filterCategory}"';
+      return 'Nenhuma transação encontrada para "$_filterCategory"';
     } else if (_filterMonth != null) {
       return 'Nenhuma transação encontrada para ${getMonthName(_filterMonth!)}';
     } else {
@@ -258,6 +364,24 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         _allTransactions = transactions;
         _transactionsFuture = Future.value(transactions);
       });
+    } catch (error) {
+      setState(() {
+        _transactionsFuture = Future.error(error);
+      });
+    }
+  }
+
+  void _deleteTransaction(String id) async {
+    try {
+      final _provider = Provider.of<TransactionProvider>(
+        context,
+        listen: false,
+      );
+      await _provider.deleteTransaction(id);
+      _loadTransactions();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Transação excluída com sucesso!')),
+      );
     } catch (error) {
       setState(() {
         _transactionsFuture = Future.error(error);

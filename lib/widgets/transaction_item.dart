@@ -7,6 +7,7 @@ class TransactionItem extends StatelessWidget {
   final String date;
   final double value;
   final bool isIncome;
+  final String? imageUrl;
 
   const TransactionItem({
     super.key,
@@ -14,6 +15,7 @@ class TransactionItem extends StatelessWidget {
     required this.date,
     required this.value,
     required this.isIncome,
+    this.imageUrl,
   });
 
   @override
@@ -39,9 +41,19 @@ class TransactionItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                date,
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              Row(
+                spacing: 8,
+                children: [
+                  Text(
+                    date,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  if (imageUrl != null && imageUrl!.isNotEmpty)
+                    Transform.rotate(
+                      angle: 70,
+                      child: Icon(Icons.attach_file, size: 16),
+                    ),
+                ],
               ),
             ],
           ),

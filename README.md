@@ -35,3 +35,7 @@ Autenticação via Firebase. Para acessar, registre-se ou utilize os dados abaix
 
 - **E-mail:** `teste@teste.com`
 - **Senha:** `123456`
+
+## Editar / Deletar transação
+
+Deslize a transação para a esquerda e as opções ficarão disponíveis.

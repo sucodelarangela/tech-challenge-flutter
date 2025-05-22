@@ -18,7 +18,7 @@ class AdaptativeDatePicker extends StatelessWidget {
     showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2024),
+      firstDate: DateTime(2025),
       lastDate: DateTime.now(),
       locale: Locale('pt', 'BR'),
     ).then((pickedDate) {
@@ -40,7 +40,7 @@ class AdaptativeDatePicker extends StatelessWidget {
           child: CupertinoDatePicker(
             mode: CupertinoDatePickerMode.date,
             initialDateTime: DateTime.now(),
-            minimumDate: DateTime(2024),
+            minimumDate: DateTime(2025),
             maximumDate: DateTime.now(),
             onDateTimeChanged: onDateChanged,
           ),
