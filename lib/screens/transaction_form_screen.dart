@@ -8,9 +8,7 @@ import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart'
 import 'package:tech_challenge_flutter/widgets/adaptative_date_picker.dart';
 
 class TransactionFormScreen extends StatefulWidget {
-  final VoidCallback? reloadTransactions;
-
-  const TransactionFormScreen({super.key, this.reloadTransactions});
+  const TransactionFormScreen({super.key});
 
   @override
   State<TransactionFormScreen> createState() => _TransactionFormScreenState();
@@ -37,8 +35,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     super.didChangeDependencies();
     if (_formData.isEmpty) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      if (args != null && args is Map) {
-        final transaction = args['transaction'] as TransactionModel;
+      if (args != null && args is TransactionModel) {
+        final transaction = args;
         _formData['id'] = transaction.id;
         _formData['description'] = transaction.description;
         _formData['value'] = transaction.value;
@@ -144,8 +142,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         listen: false,
       ).saveTransaction(_formData);
 
-      _callReloadTransactions();
-
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Transação salva com sucesso!')));
@@ -170,20 +166,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       );
     } finally {
       setState(() => _isLoading = false);
-    }
-  }
-
-  void _callReloadTransactions() {
-    // Tenta pelo construtor
-    if (widget.reloadTransactions != null) {
-      widget.reloadTransactions!();
-      return;
-    }
-    // Tenta pelos argumentos da rota
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args != null && args is Map && args['reloadTransactions'] != null) {
-      final Function reloadTransactions = args['reloadTransactions'];
-      reloadTransactions();
     }
   }
 
