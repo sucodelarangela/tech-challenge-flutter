@@ -63,12 +63,17 @@ class TransactionProvider with ChangeNotifier {
 
   // Carregar o saldo do usuário
   Future<void> loadBalance() async {
+    _setLoading(true);
+    _setError(null);
+
     try {
       _userBalance = await _transactionService.getBalance();
       notifyListeners();
     } catch (e) {
       print('Erro ao carregar saldo: $e');
       _setError('Erro ao carregar saldo: ${e.toString()}');
+    } finally {
+      _setLoading(false);
     }
   }
 

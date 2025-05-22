@@ -134,11 +134,13 @@ class TransactionService {
           await balanceRef.update({
             'balance': FieldValue.increment(value - oldValue),
             'totalIncome': FieldValue.increment(value - oldValue),
+            'lastUpdated': DateTime.now(),
           });
         } else {
           await balanceRef.update({
             'balance': FieldValue.increment(oldValue - value),
             'totalExpenses': FieldValue.increment(value - oldValue),
+            'lastUpdated': DateTime.now(),
           });
         }
       } else {
@@ -149,6 +151,7 @@ class TransactionService {
             'balance': FieldValue.increment(oldValue + value),
             'totalExpenses': FieldValue.increment(-oldValue),
             'totalIncome': FieldValue.increment(value),
+            'lastUpdated': DateTime.now(),
           });
         } else {
           // Era entrada, virou saída
@@ -156,6 +159,7 @@ class TransactionService {
             'balance': FieldValue.increment(-(oldValue + value)),
             'totalIncome': FieldValue.increment(-oldValue),
             'totalExpenses': FieldValue.increment(value),
+            'lastUpdated': DateTime.now(),
           });
         }
       }
@@ -165,11 +169,13 @@ class TransactionService {
         await balanceRef.update({
           'balance': FieldValue.increment(value),
           'totalIncome': FieldValue.increment(value),
+          'lastUpdated': DateTime.now(),
         });
       } else {
         await balanceRef.update({
           'balance': FieldValue.increment(-value),
           'totalExpenses': FieldValue.increment(value),
+          'lastUpdated': DateTime.now(),
         });
       }
     }

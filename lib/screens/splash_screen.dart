@@ -9,8 +9,10 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    AuthProvider auth = Provider.of(context);
-
-    return auth.isAuth ? HomeScreen() : LoginScreen();
+    return Consumer<AuthProvider>(
+      builder: (ctx, auth, _) {
+        return auth.isAuth ? HomeScreen() : LoginScreen();
+      },
+    );
   }
 }
