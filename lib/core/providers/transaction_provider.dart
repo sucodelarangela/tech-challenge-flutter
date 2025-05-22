@@ -8,28 +8,51 @@ class TransactionProvider with ChangeNotifier {
 
   UserBalance? _userBalance;
   List<TransactionModel>? _transactions;
+  bool _isLoading = false;
+  bool _hasError = false;
+  String? _error;
 
   // Getters
   UserBalance? get userBalance => _userBalance;
   List<TransactionModel>? get transactions => _transactions;
+  bool get isLoading => _isLoading;
+  bool get hasError => _hasError;
+  String? get error => _error;
 
   // Construtor que inicializa os dados se o usuário estiver autenticado
   TransactionProvider() {
     if (_transactionService.isUserAuthenticated) {
       loadBalance();
+      loadTransactions();
     }
+  }
+
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String? error) {
+    _hasError = error != null;
+    _error = error;
+    notifyListeners();
   }
 
   // Salvar uma nova transação
   Future<void> saveTransaction(Map<String, Object> data) async {
+    _setLoading(true);
+    _setError(null);
+
     try {
       await _transactionService.saveTransaction(data);
-
-      // Atualizar os dados após salvar a transação
       await loadBalance();
+      await loadTransactions();
+      notifyListeners();
     } catch (e) {
       print('Erro ao salvar transação: $e');
-      throw e;
+      _setError('Erro ao salvar transação: ${e.toString()}');
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -40,32 +63,49 @@ class TransactionProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Erro ao carregar saldo: $e');
+      _setError('Erro ao carregar saldo: ${e.toString()}');
     }
   }
 
   // Carregar as transações do usuário - mantém compatibilidade com o código existente
   Future<List<TransactionModel>> loadTransactions() async {
+    _setLoading(true);
+    _setError(null);
+
     try {
       final transactions = await _transactionService.getTransactions();
-      _transactions = transactions; // também armazena internamente
+      _transactions = transactions;
       notifyListeners();
       return transactions; // retorna para manter compatibilidade
     } catch (e) {
       print('Erro ao carregar transações: $e');
-      throw e; // propaga o erro para o componente chamar
+      _setError('Erro ao carregar transações: ${e.toString()}');
+      rethrow;
+    } finally {
+      _setLoading(false);
     }
   }
 
   // Excluir uma transação
   Future<void> deleteTransaction(String id) async {
+    _setLoading(true);
+    _setError(null);
+
     try {
       await _transactionService.deleteTransaction(id);
-
-      // Atualizar os dados após excluir a transação
       await loadBalance();
+      await loadTransactions();
+      notifyListeners();
     } catch (e) {
       print('Erro ao excluir transação: $e');
-      throw e;
+      _setError('Erro ao excluir transação: ${e.toString()}');
+    } finally {
+      _setLoading(false);
     }
+  }
+
+  // Método para limpar erros manualmente (opcional)
+  void clearError() {
+    _setError(null);
   }
 }

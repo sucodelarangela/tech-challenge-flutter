@@ -4,7 +4,6 @@ import 'package:tech_challenge_flutter/components/filter/filter_modal.dart';
 import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
-import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
@@ -23,10 +22,8 @@ class TransactionsScreen extends StatefulWidget {
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
   final ScrollController _scrollController = ScrollController();
-  late Future<List<TransactionModel>> _transactionsFuture;
   String? _filterCategory;
   int? _filterMonth;
-  List<TransactionModel> _allTransactions = [];
 
   @override
   Widget build(BuildContext context) {
@@ -52,15 +49,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           ),
           IconButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => TransactionFormScreen(
-                        reloadTransactions: _loadTransactions,
-                      ),
-                ),
-              );
+              Navigator.of(context).pushNamed(AppRoutes.TRANSACTION_FORM);
             },
             icon: const Icon(Icons.add),
           ),
@@ -99,22 +88,23 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: FutureBuilder<List<TransactionModel>>(
-                future: _transactionsFuture,
-                builder: (ctx, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
+              child: Consumer<TransactionProvider>(
+                builder: (ctx, transactionProvider, _) {
+                  if (transactionProvider.isLoading) {
                     return const Center(child: CircularProgressIndicator());
                   }
 
-                  if (snapshot.hasError) {
+                  if (transactionProvider.hasError) {
                     return Center(
                       child: Text(
-                        'Erro ao carregar transações: ${snapshot.error}',
+                        'Erro ao carregar transações: ${transactionProvider.error}',
                       ),
                     );
                   }
 
-                  final transactions = snapshot.data ?? [];
+                  final transactions = _getFilteredTransactions(
+                    transactionProvider.transactions!,
+                  );
 
                   if (transactions.isEmpty) {
                     return Center(child: Text(_buildEmptyListMessage()));
@@ -217,12 +207,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                                                     ).pushNamed(
                                                       AppRoutes
                                                           .TRANSACTION_FORM,
-                                                      arguments: {
-                                                        'transaction':
-                                                            transaction,
-                                                        'reloadTransactions':
-                                                            _loadTransactions,
-                                                      },
+                                                      arguments: transaction,
                                                     );
                                                   },
                                                   backgroundColor:
@@ -273,34 +258,25 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _transactionsFuture = Future.value([]);
-    _loadTransactions();
-  }
+  List<TransactionModel> _getFilteredTransactions(
+    List<TransactionModel> allTransactions,
+  ) {
+    if (_filterCategory == null && _filterMonth == null) {
+      return allTransactions;
+    }
 
-  void _applyFilter() {
-    setState(() {
-      if (_filterCategory == null && _filterMonth == null) {
-        _transactionsFuture = Future.value(_allTransactions);
-      } else {
-        _transactionsFuture = Future.value(
-          _allTransactions.where((transaction) {
-            final date = transaction.date.toDate();
-            final categoryMatch =
-                _filterCategory == null
-                    ? true
-                    : _filterCategory == 'Entrada'
-                    ? transaction.isIncome
-                    : !transaction.isIncome;
-            final monthMatch =
-                _filterMonth == null ? true : date.month == _filterMonth;
-            return categoryMatch && monthMatch;
-          }).toList(),
-        );
-      }
-    });
+    return allTransactions.where((transaction) {
+      final date = transaction.date.toDate();
+      final categoryMatch =
+          _filterCategory == null
+              ? true
+              : _filterCategory == 'Entrada'
+              ? transaction.isIncome
+              : !transaction.isIncome;
+      final monthMatch =
+          _filterMonth == null ? true : date.month == _filterMonth;
+      return categoryMatch && monthMatch;
+    }).toList();
   }
 
   String _buildEmptyListMessage() {
@@ -334,7 +310,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     setState(() {
       _filterCategory = null;
       _filterMonth = null;
-      _transactionsFuture = Future.value(_allTransactions);
     });
   }
 
@@ -352,25 +327,6 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
     return grouped;
   }
 
-  void _loadTransactions() async {
-    try {
-      final transactions =
-          await Provider.of<TransactionProvider>(
-            context,
-            listen: false,
-          ).loadTransactions();
-
-      setState(() {
-        _allTransactions = transactions;
-        _transactionsFuture = Future.value(transactions);
-      });
-    } catch (error) {
-      setState(() {
-        _transactionsFuture = Future.error(error);
-      });
-    }
-  }
-
   void _deleteTransaction(String id) async {
     try {
       final _provider = Provider.of<TransactionProvider>(
@@ -378,14 +334,14 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
         listen: false,
       );
       await _provider.deleteTransaction(id);
-      _loadTransactions();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Transação excluída com sucesso!')),
       );
     } catch (error) {
-      setState(() {
-        _transactionsFuture = Future.error(error);
-      });
+      // TODO: Verificar como retornar o erro do service
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao excluir transação')));
     }
   }
 
@@ -399,13 +355,11 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           onCategoryFilterApplied: (newCategoryFilter) {
             setState(() {
               _filterCategory = newCategoryFilter;
-              _applyFilter();
             });
           },
           onMonthFilterApplied: (newMonthFilter) {
             setState(() {
               _filterMonth = newMonthFilter;
-              _applyFilter();
             });
           },
         );
