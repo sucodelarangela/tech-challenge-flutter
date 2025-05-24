@@ -20,7 +20,7 @@ dependencies:
   firebase_storage: ^12.4.5
   cloud_firestore: ^5.6.7
   firebase_auth: ^5.5.3
-  intl: ^0.19.0
+  intl: ^0.20.2
   uuid: ^4.5.1
   path: ^1.9.1
   image_picker: ^1.1.2
@@ -28,6 +28,7 @@ dependencies:
   image_gallery_saver_plus: ^4.0.1
   dio: ^5.4.0
   permission_handler: ^11.0.0
+  fl_chart: ^0.66.1
 
 dev_dependencies:
   flutter_test:
