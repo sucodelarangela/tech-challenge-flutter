@@ -7,7 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/settings_screen.dart';
-import 'package:tech_challenge_flutter/screens/splash_screen.dart';
+import 'package:tech_challenge_flutter/screens/home_or_login_screen.dart';
 import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
 import 'package:tech_challenge_flutter/screens/transactions_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
