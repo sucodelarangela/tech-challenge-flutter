@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
+import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
@@ -46,13 +47,13 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Consumer<TransactionProvider>(
-              builder: (ctx, provider, _) {
-                provider.isLoading
+            Consumer2<AuthProvider, TransactionProvider>(
+              builder: (ctx, authProvider, trProvider, _) {
+                trProvider.isLoading
                     ? context.loaderOverlay.show()
                     : context.loaderOverlay.hide();
 
-                if (provider.hasError) {
+                if (trProvider.hasError) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 32.0,
@@ -79,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            provider.error ?? 'Tente novamente mais tarde.',
+                            trProvider.error ?? 'Tente novamente mais tarde.',
                             style: TextStyle(fontSize: 14, color: Colors.grey),
                             textAlign: TextAlign.center,
                           ),
@@ -88,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 }
-                final userBalance = provider.userBalance;
+                final userBalance = trProvider.userBalance;
 
                 return Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -118,6 +119,22 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (authProvider.user?.name != null &&
+                                  authProvider.user!.name!.isNotEmpty)
+                                Row(
+                                  children: [
+                                    Icon(Icons.person, color: Colors.blueGrey),
+                                    SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        authProvider.user?.name ?? '',
+                                        style: TextStyle(fontSize: 14),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              SizedBox(height: 10),
                               Row(
                                 children: [
                                   Icon(Icons.email, color: Colors.blueGrey),

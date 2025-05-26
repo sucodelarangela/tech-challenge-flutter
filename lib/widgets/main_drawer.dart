@@ -49,7 +49,7 @@ class MainDrawer extends StatelessWidget {
                 Image.asset('assets/images/logo.png'),
                 SizedBox(height: 10),
                 Text(
-                  'Olá, ${auth.user?.name}!',
+                  'Olá, ${auth.user?.name != null && auth.user!.name!.isNotEmpty ? auth.user?.name : auth.user?.email.split('@')[0]}!',
                   style: TextStyle(
                     color: Theme.of(context).canvasColor,
                     fontSize: 16,
@@ -83,7 +83,13 @@ class MainDrawer extends StatelessWidget {
             endIndent: 20,
           ),
 
-          // _createIcon(Icons.settings, 'Configurações', null),
+          _createIcon(
+            Icons.settings,
+            'Configurações',
+            () =>
+                Navigator.of(context).pushReplacementNamed(AppRoutes.SETTINGS),
+          ),
+
           _createIcon(Icons.logout, 'Sair', logout),
         ],
       ),
