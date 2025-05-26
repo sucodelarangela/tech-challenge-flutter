@@ -118,6 +118,7 @@ class TransactionService {
     required bool isIncome,
     required double value,
     bool isEdit = false,
+    bool isDelete = false,
     double? oldValue,
     bool? oldIsIncome,
   }) async {
@@ -125,6 +126,23 @@ class TransactionService {
     if (user == null) return;
 
     final balanceRef = _firestore.collection('users').doc(user.uid);
+
+    if (isDelete) {
+      if (isIncome) {
+        await balanceRef.update({
+          'balance': FieldValue.increment(-value),
+          'totalIncome': FieldValue.increment(-value),
+          'lastUpdated': DateTime.now(),
+        });
+      } else {
+        await balanceRef.update({
+          'balance': FieldValue.increment(value),
+          'totalExpenses': FieldValue.increment(-value),
+          'lastUpdated': DateTime.now(),
+        });
+      }
+      return;
+    }
 
     // Se é edição
     if (isEdit && oldValue != null && oldIsIncome != null) {
@@ -305,7 +323,7 @@ class TransactionService {
       await _firestore.collection('transactions').doc(id).delete();
 
       // Atualizar o saldo (valor negativo para inverter a operação original)
-      await _updateBalance(isIncome: !isIncome, value: value);
+      await _updateBalance(isIncome: isIncome, value: value, isDelete: true);
     } catch (e) {
       print('Erro ao excluir transação: $e');
       throw e;

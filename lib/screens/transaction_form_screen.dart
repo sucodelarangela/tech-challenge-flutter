@@ -28,7 +28,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   String _imageUrl = '';
   bool _isImageFromNetwork = false;
 
-  bool _isLoading = false;
   static const int _maxImageSize = 1 * 1024 * 1024;
 
   @override
@@ -125,10 +124,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       _formData['date'] = _selectedDate;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
       if (_imageFile != null) {
         _formData['image'] = _imageFile!.path;
@@ -165,8 +160,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               ],
             ),
       );
-    } finally {
-      setState(() => _isLoading = false);
     }
   }
 
