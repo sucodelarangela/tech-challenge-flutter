@@ -24,13 +24,28 @@ class AuthProvider with ChangeNotifier {
   // Métodos que delegam para o serviço
   Future<void> register(String email, String password) async {
     await _authService.register(email, password);
+    notifyListeners();
   }
 
   Future<void> login(String email, String password) async {
     await _authService.login(email, password);
+    notifyListeners();
+  }
+
+  Future<void> updateUser(String username) async {
+    await _authService.updateUserData(username);
+    _currentUser = await _authService.updateUserData(username);
+    notifyListeners();
   }
 
   Future<void> logout() async {
     await _authService.logout();
+    notifyListeners();
+  }
+
+  Future<void> deleteUser(String password) async {
+    await _authService.deleteAccount(password);
+    _currentUser = null;
+    notifyListeners();
   }
 }

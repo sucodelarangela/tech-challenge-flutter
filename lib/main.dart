@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
+import 'package:tech_challenge_flutter/screens/settings_screen.dart';
 import 'package:tech_challenge_flutter/screens/splash_screen.dart';
 import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
 import 'package:tech_challenge_flutter/screens/transactions_screen.dart';
@@ -72,6 +73,8 @@ class MyApp extends StatelessWidget {
               (ctx) => LoaderOverlay(child: const TransactionsScreen()),
           AppRoutes.TRANSACTION_FORM:
               (ctx) => LoaderOverlay(child: const TransactionFormScreen()),
+          AppRoutes.SETTINGS:
+              (ctx) => LoaderOverlay(child: const SettingsScreen()),
         },
 
         debugShowCheckedModeBanner: false,

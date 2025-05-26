@@ -1,22 +1,22 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:tech_challenge_flutter/core/models/account_user.dart';
 import 'package:tech_challenge_flutter/core/models/auth_exception.dart';
-import 'package:tech_challenge_flutter/utils/capitalize.dart';
+// import 'package:tech_challenge_flutter/utils/capitalize.dart';
 
 class AuthService {
   final FirebaseAuth _firebase = FirebaseAuth.instance;
 
   // Converter User do Firebase para seu modelo AccountUser
   AccountUser? _toAccountUser(User user) {
-    final name =
-        user.displayName != null && user.displayName!.trim().isNotEmpty
-            ? user.displayName
-            : user.email!.split('@')[0];
+    // final name =
+    //     user.displayName != null && user.displayName!.trim().isNotEmpty
+    //         ? user.displayName
+    //         : user.email!.split('@')[0];
 
     return AccountUser(
       id: user.uid,
       email: user.email!,
-      name: capitalize(name!),
+      name: user.displayName ?? '',
     );
   }
 
@@ -61,10 +61,38 @@ class AuthService {
     }
   }
 
+  Future<AccountUser?> updateUserData(String username) async {
+    try {
+      final user = _firebase.currentUser;
+      if (user == null) return null;
+      await user.updateDisplayName(username);
+      await user.reload();
+      return getCurrentUser();
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(e.code);
+    } on Exception catch (e) {
+      throw AuthException(e.toString());
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     await _firebase.signOut();
   }
 
-  // TODO: Criar exclusão de conta
+  Future<void> deleteAccount(String password) async {
+    try {
+      final user = _firebase.currentUser;
+      final credential = EmailAuthProvider.credential(
+        email: user!.email!,
+        password: password,
+      );
+      await user.reauthenticateWithCredential(credential);
+      await user.delete();
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(e.code);
+    } on Exception catch (e) {
+      throw AuthException(e.toString());
+    }
+  }
 }
