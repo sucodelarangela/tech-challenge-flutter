@@ -59,6 +59,8 @@ flutter_localizations:
 cupertino_icons: ^1.0.8
 loader_overlay: ^5.0.0
 flutter_slidable: ^4.0.0
+flutter_native_splash: ^2.2.16
+flutter_launcher_icons: ^0.10.0
 # GERENCIAMENTO DE ESTADO
 provider: ^6.1.5
 # FIREBASE
