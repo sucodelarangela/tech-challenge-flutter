@@ -46,6 +46,15 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    final _provider = Provider.of<TransactionProvider>(context, listen: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _provider.loadTransactions();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isAuth = Provider.of<AuthProvider>(context).isAuth;
 

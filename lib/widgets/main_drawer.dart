@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
 import 'package:tech_challenge_flutter/core/models/auth_exception.dart';
+import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
 class MainDrawer extends StatelessWidget {
@@ -25,9 +26,11 @@ class MainDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthProvider auth = Provider.of(context);
+    final TransactionProvider transaction = Provider.of(context);
 
     Future<void> logout() async {
       try {
+        transaction.clearTransactions();
         await auth.logout();
         Navigator.of(context).pushReplacementNamed(AppRoutes.SPLASH);
       } on AuthException catch (e) {

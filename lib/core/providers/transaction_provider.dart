@@ -43,6 +43,11 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void clearTransactions() {
+    _transactions = [];
+    notifyListeners();
+  }
+
   // Salvar uma nova transação
   Future<void> saveTransaction(Map<String, Object> data) async {
     _setLoading(true);
