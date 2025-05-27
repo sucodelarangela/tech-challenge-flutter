@@ -19,6 +19,10 @@ O objetivo é criar uma aplicação mobile usando tecnologias à escolha(**React
 - **Transações**: Mostra todas as transações com opção de ver, editar, deletar e baixar anexo (se existente). Você também pode filtrar as transações por mês ou categoria. Para editar, deletar ou baixar anexos, deslize o card da transação para a esquerda.
 - **Nova/Editar Transação**: Formulário para criar ou editar transações com campos como descrição, categoria, valor, data e anexo. O formulário pode ser acessado pelo botão "+" na AppBar.
 
+- ## Vídeo demonstrativo
+
+https://youtu.be/l0pXp5K4J9g
+
 ## Estrutura do projeto
 
 ```
