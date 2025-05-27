@@ -13,25 +13,31 @@ class LoginScreen extends StatelessWidget {
 
       // Container(
       // ),
-      body: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).canvasColor,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      body: Stack(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).canvasColor,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 200),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [LoginForm()],
+
+          Center(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [LoginForm()],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
