@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/core/models/transaction.dart';
-import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
+import 'package:tech_challenge_flutter/domain/models/transaction.dart';
+import 'package:tech_challenge_flutter/data/api/transaction_provider.dart';
 import 'package:tech_challenge_flutter/widgets/adaptative_date_picker.dart';
 
 class TransactionFormScreen extends StatefulWidget {

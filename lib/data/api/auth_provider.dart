@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tech_challenge_flutter/core/models/account_user.dart';
-import 'package:tech_challenge_flutter/core/services/auth_service.dart';
+import 'package:tech_challenge_flutter/domain/models/account_user.dart';
+import 'package:tech_challenge_flutter/domain/business/auth_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AuthService _authService = AuthService();

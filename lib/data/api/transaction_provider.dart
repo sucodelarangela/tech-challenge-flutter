@@ -4,9 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:tech_challenge_flutter/core/models/transaction.dart';
-import 'package:tech_challenge_flutter/core/models/user_balance.dart';
-import 'package:tech_challenge_flutter/core/services/transaction_service.dart';
+import 'package:tech_challenge_flutter/domain/models/transaction.dart';
+import 'package:tech_challenge_flutter/domain/models/user_balance.dart';
+import 'package:tech_challenge_flutter/domain/business/transaction_service.dart';
 
 class TransactionProvider with ChangeNotifier {
   final TransactionService _transactionService = TransactionService();

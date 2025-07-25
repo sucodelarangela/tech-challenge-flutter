@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:tech_challenge_flutter/core/models/account_user.dart';
-import 'package:tech_challenge_flutter/core/models/auth_exception.dart';
+import 'package:tech_challenge_flutter/domain/models/account_user.dart';
+import 'package:tech_challenge_flutter/domain/models/auth_exception.dart';
 // import 'package:tech_challenge_flutter/utils/capitalize.dart';
 
 class AuthService {

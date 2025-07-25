@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:path/path.dart' as path;
-import 'package:tech_challenge_flutter/core/models/transaction.dart';
-import 'package:tech_challenge_flutter/core/models/user_balance.dart';
+import 'package:tech_challenge_flutter/domain/models/transaction.dart';
+import 'package:tech_challenge_flutter/domain/models/user_balance.dart';
 import 'package:uuid/uuid.dart';
 
 class TransactionService {

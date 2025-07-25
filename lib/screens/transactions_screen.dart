@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:tech_challenge_flutter/components/filter/filter_modal.dart';
-import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
-import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
+import 'package:tech_challenge_flutter/data/api/auth_provider.dart';
+import 'package:tech_challenge_flutter/data/api/transaction_provider.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
@@ -12,7 +12,7 @@ import 'package:tech_challenge_flutter/widgets/month_header.dart';
 import 'package:tech_challenge_flutter/widgets/transaction_item.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../core/models/transaction.dart';
+import '../domain/models/transaction.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
-import 'package:tech_challenge_flutter/core/models/auth_exception.dart';
-import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
+import 'package:tech_challenge_flutter/data/api/auth_provider.dart';
+import 'package:tech_challenge_flutter/domain/models/auth_exception.dart';
+import 'package:tech_challenge_flutter/data/api/transaction_provider.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
 class MainDrawer extends StatelessWidget {

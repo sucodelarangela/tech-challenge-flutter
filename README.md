@@ -31,14 +31,16 @@ tech_challenge_flutter/
 ├── assets/              - Imagens, fontes, favicon
 ├── ios/                 - Código nativo iOS
 ├── lib/                 - Arquivos do app
-│   └── components/      - componentes reutilizáveis
-│   └── core/
-│   │   └── models/      - Modelos de dados
-│   │   └── providers/   - Gerenciamento de estado
-│   │   └── services/    - Serviços Firebase
-│   └── screens/         - Telas principais
-│   └── utils/           - Utilidades
-│   └── widgets/         - Widgets reutilizáveis
+│   ├── components/      - componentes reutilizáveis
+│   ├── controllers/     - Camada de interface com UI
+│   ├── data/            - Camada de infraestrutura
+│   │   └── api/         - Acesso ao Firebase
+│   ├── domain/          - Camada de domínio
+│   │   ├── models/      - Modelos de dados
+│   │   └── business/    - Regras de negócio
+│   ├── screens/         - Telas principais
+│   ├── utils/           - Utilidades
+│   ├── widgets/         - Widgets reutilizáveis
 │   └── main.dart        - Ponto de entrada
 ├── linux/               - Código nativo Linux
 ├── macos/               - Código nativo macOS
@@ -168,14 +170,16 @@ tech_challenge_flutter/
 ├── assets/              - Images, fonts, favicon
 ├── ios/                 - iOS native code
 ├── lib/                 - App files
-│   └── components/      - Reusable components
-│   └── core/
-│   │   └── models/      - Data models
-│   │   └── providers/   - State management
-│   │   └── services/    - Firebase services
-│   └── screens/         - Main pages
-│   └── utils/           - Utilities
-│   └── widgets/         - Reusable Widgets
+│   ├── components/      - Reusable components
+│   ├── controllers/     - Application layer
+│   ├── data/            - Data layer
+│   │   └── api/         - Firebase connections
+│   ├── domain/          - Domain layer
+│   │   ├── models/      - Data models
+│   │   └── business/    - Business rules
+│   ├── screens/         - Main pages
+│   ├── utils/           - Utilities
+│   ├── widgets/         - Reusable Widgets
 │   └── main.dart        - App entry point
 ├── linux/               - Linux native code
 ├── macos/               - macOS native code
