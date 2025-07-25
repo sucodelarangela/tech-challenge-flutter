@@ -19,7 +19,27 @@ O objetivo é criar uma aplicação mobile usando tecnologias à escolha(**React
 - **Transações**: Mostra todas as transações com opção de ver, editar, deletar e baixar anexo (se existente). Você também pode filtrar as transações por mês ou categoria. Para editar, deletar ou baixar anexos, deslize o card da transação para a esquerda.
 - **Nova/Editar Transação**: Formulário para criar ou editar transações com campos como descrição, categoria, valor, data e anexo. O formulário pode ser acessado pelo botão "+" na AppBar.
 
-- ## Vídeo demonstrativo
+## REFATORAÇÕES PARA A FASE 4 DO TECH CHALLENGE
+
+### Criptografia e segurança
+
+Na autenticação, o Firebase já aplica por padrão limites automáticos para tentativas consecutivas de login com falha a partir do mesmo endereço IP ou conta de e-mail (ataques de força bruta). Além disso, implementamos o Firebase App Check, que protege os recursos do Firebase contra acessos não autorizados de clientes falsificados (bots, scripts externos).
+
+Os bancos de dados do Firebase usados no projeto já possuem criptografia dos dados, sendo criptografia em repouso AES-256 e criptografia em trânsito com HTTPS e TLS 1.2.
+
+Também utilizamos a plataforma [Snyk](https://app.snyk.io/) e não foram encontradas falhas de vulnerabilidade:
+![alt text](image.png)
+
+### Clean architecture
+
+O projeto foi refatorado para atender um padrão de arquitetura baseado em DDD (Domain Driven Development):
+
+- Camada de Domínio: abrange os modelos de dados e as regras de negócio;
+- Camada de Infraestrutura: abrange a lógica de acessos ao banco de dados (DAO - Data Access Object);
+- Camada de Aplicação: abrange os controladores, que coordenam as ações; e
+- Camada de Apresentação: abrange a interface do usuário com as páginas (ou telas) e seus componentes.
+
+## Vídeo demonstrativo
 
 https://youtu.be/l0pXp5K4J9g
 
@@ -34,10 +54,10 @@ tech_challenge_flutter/
 │   ├── components/      - componentes reutilizáveis
 │   ├── controllers/     - Camada de interface com UI
 │   ├── data/            - Camada de infraestrutura
-│   │   └── api/         - Acesso ao Firebase
+│   │   └── dao/         - Acesso ao Firebase
 │   ├── domain/          - Camada de domínio
-│   │   ├── models/      - Modelos de dados
-│   │   └── business/    - Regras de negócio
+│   │   ├── business/    - Regras de negócio
+│   │   └── models/      - Modelos de dados
 │   ├── screens/         - Telas principais
 │   ├── utils/           - Utilidades
 │   ├── widgets/         - Widgets reutilizáveis
@@ -74,6 +94,7 @@ firebase_core: ^3.13.0
 firebase_storage: ^12.4.5
 cloud_firestore: ^5.6.7
 firebase_auth: ^5.5.3
+firebase_app_check: ^0.3.2+10
 # UTILIDADES
 intl: ^0.19.0
 uuid: ^4.5.1
@@ -162,6 +183,26 @@ The goal is to create a mobile application for financial management using techno
 - **Transactions Page**: Shows all transactions made, with options to view edit, delete and download attachments (if available). You may also filter transactions by month or category. To edit, delete or download the attachments, slide the transaction card to the left.
 - **Add New Transaction**: Form to add or edit transactions with fields such as description, category, value, date and image attachment. The form may be accessed by touching the Add button in the appBar.
 
+## REFACTORING FOR TECH CHALLENGE PHASE 4
+
+### Encryption and Security
+
+For authentication, Firebase automatically limits consecutive failed login attempts from the same IP address or email account (brute force attacks) by default. Additionally, we implemented Firebase App Check, which protects Firebase resources against unauthorized access from spoofed clients (bots, external scripts).
+
+The Firebase databases used in the project already have data encryption, with AES-256 security encryption and encryption in transit with HTTPS and TLS 1.2.
+
+We also used the [Snyk](https://app.snyk.io/) platform and found no vulnerabilities:
+![alt text](image.png)
+
+### Clean Architecture
+
+The project was refactored to comply with an architectural standard based on DDD (Domain Driven Development):
+
+- Domain Layer: encompasses data models and business rules;
+- Infrastructure Layer: encompasses the database access logic (DAO - Data Access Object);
+- Application Layer: encompasses the parameters that coordinate actions; and
+- Presentation Layer: encompasses the user interface with pages (or screens) and their components.
+
 ## Project structure
 
 ```
@@ -173,10 +214,10 @@ tech_challenge_flutter/
 │   ├── components/      - Reusable components
 │   ├── controllers/     - Application layer
 │   ├── data/            - Data layer
-│   │   └── api/         - Firebase connections
+│   │   └── dao/         - Firebase connections
 │   ├── domain/          - Domain layer
-│   │   ├── models/      - Data models
-│   │   └── business/    - Business rules
+│   │   ├── business/    - Business rules
+│   │   └── models/      - Data models
 │   ├── screens/         - Main pages
 │   ├── utils/           - Utilities
 │   ├── widgets/         - Reusable Widgets
@@ -211,6 +252,7 @@ firebase_core: ^3.13.0
 firebase_storage: ^12.4.5
 cloud_firestore: ^5.6.7
 firebase_auth: ^5.5.3
+firebase_app_check: ^0.3.2+10
 # UTILITIES
 intl: ^0.19.0
 uuid: ^4.5.1

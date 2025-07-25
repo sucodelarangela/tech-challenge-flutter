@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/data/api/auth_provider.dart';
+import 'package:tech_challenge_flutter/controllers/auth_controller.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 
@@ -35,7 +35,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _updateUserName(BuildContext context) async {
     setState(() => _isLoading = true);
     try {
-      await Provider.of<AuthProvider>(
+      await Provider.of<AuthController>(
         context,
         listen: false,
       ).updateUser(nameController.text);
@@ -54,7 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _deleteUser(BuildContext context) async {
     try {
-      await Provider.of<AuthProvider>(
+      await Provider.of<AuthController>(
         context,
         listen: false,
       ).deleteUser(passwordController.text);
@@ -71,7 +71,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isAuth = Provider.of<AuthProvider>(context).isAuth;
+    final isAuth = Provider.of<AuthController>(context).isAuth;
 
     if (!isAuth) {
       return const LoginScreen();

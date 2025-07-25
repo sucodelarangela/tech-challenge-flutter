@@ -1,5 +1,5 @@
+// data/transaction_dao.dart
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -8,68 +8,59 @@ import 'package:tech_challenge_flutter/domain/models/transaction.dart';
 import 'package:tech_challenge_flutter/domain/models/user_balance.dart';
 import 'package:uuid/uuid.dart';
 
-class TransactionService {
+class TransactionDao {
   static const int _maxImageSize = 500 * 1024; // 0.5MB em bytes
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
   final Uuid _uuid = Uuid();
 
-  // in-memory cache for fetched transactions
+  // Cache em memória (mantido do código original)
   final List<TransactionModel> _transactionsCache = [];
   bool _transactionsLoaded = false;
-
-  // in-memory cache for user balance
   UserBalance? _balanceCache;
   bool _balanceLoaded = false;
 
   bool get isUserAuthenticated => _auth.currentUser != null;
 
-  Future<void> deleteTransaction(String id) async {
+  // ✅ Buscar transações (baseado no seu código original)
+  Future<List<TransactionModel>> getTransactions({
+    bool forceRefresh = false,
+  }) async {
+    if (!forceRefresh && _transactionsLoaded) {
+      return _transactionsCache;
+    }
+
     try {
       final user = _auth.currentUser;
       if (user == null) {
         throw Exception('Usuário não autenticado');
       }
 
-      final docSnapshot =
-          await _firestore.collection('transactions').doc(id).get();
+      final querySnapshot =
+          await _firestore
+              .collection('transactions')
+              .where('userId', isEqualTo: user.uid)
+              .orderBy('date', descending: true)
+              .get();
 
-      if (!docSnapshot.exists) {
-        throw Exception('Transação não encontrada');
-      }
+      _transactionsCache
+        ..clear()
+        ..addAll(
+          querySnapshot.docs.map(
+            (doc) => TransactionModel.fromMap(doc.data(), doc.id),
+          ),
+        );
 
-      final data = docSnapshot.data()!;
-
-      if (data['userId'] != user.uid) {
-        throw Exception('Você não tem permissão para excluir esta transação');
-      }
-
-      final isIncome = data['category'] == 'Entrada';
-      final value = (data['value'] as num).toDouble();
-
-      if (data['image'] != null && data['image'].toString().isNotEmpty) {
-        try {
-          final imageRef = _storage.refFromURL(data['image'].toString());
-          await imageRef.delete();
-        } catch (e) {
-          print('Erro ao excluir imagem: $e');
-        }
-      }
-
-      await _firestore.collection('transactions').doc(id).delete();
-
-      await _updateBalance(isIncome: isIncome, value: value, isDelete: true);
-
-      // invalida cache após exclusão
-      _transactionsLoaded = false;
+      _transactionsLoaded = true;
+      return _transactionsCache;
     } catch (e) {
-      print('Erro ao excluir transação: $e');
+      print('Erro ao buscar transações: $e');
       throw e;
     }
   }
 
+  // ✅ Buscar saldo (baseado no seu código original)
   Future<UserBalance?> getBalance({bool forceRefresh = false}) async {
     if (!forceRefresh && _balanceLoaded && _balanceCache != null) {
       return _balanceCache;
@@ -110,46 +101,10 @@ class TransactionService {
     }
   }
 
-  Future<List<TransactionModel>> getTransactions({
-    bool forceRefresh = false,
-  }) async {
-    if (!forceRefresh && _transactionsLoaded) {
-      return _transactionsCache;
-    }
-
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        throw Exception('Usuário não autenticado');
-      }
-
-      final querySnapshot =
-          await _firestore
-              .collection('transactions')
-              .where('userId', isEqualTo: user.uid)
-              .orderBy('date', descending: true)
-              .get();
-
-      _transactionsCache
-        ..clear()
-        ..addAll(
-          querySnapshot.docs.map(
-            (doc) => TransactionModel.fromMap(doc.data(), doc.id),
-          ),
-        );
-
-      _transactionsLoaded = true;
-      return _transactionsCache;
-    } catch (e) {
-      print('Erro ao buscar transações: $e');
-      throw e;
-    }
-  }
-
+  // ✅ Salvar transação (baseado no seu código original)
   Future<void> saveTransaction(Map<String, Object> data) async {
     try {
       final user = _auth.currentUser;
-
       if (user == null) throw Exception('Usuário não autenticado');
 
       final String? documentId = data['id'] as String?;
@@ -168,28 +123,25 @@ class TransactionService {
         }
       }
 
+      // Upload de imagem se necessário
       final String? imagePath = data['image'] as String?;
       if (imagePath != null && imagePath.isNotEmpty) {
-        final String imagePath = data['image'] as String;
-
         if (imagePath.startsWith('http')) {
           data['image'] = imagePath;
         } else {
           final File imageFile = File(imagePath);
-
           final int fileSize = await imageFile.length();
           if (fileSize > _maxImageSize) {
             throw Exception('A imagem deve ter no máximo 0.5MB');
           }
-
           final String imageUrl = await _uploadImage(imageFile);
-
           data['image'] = imageUrl;
         }
       } else {
         data['image'] = '';
       }
 
+      // Converter DateTime para Timestamp
       if (data['date'] is DateTime) {
         data['date'] = Timestamp.fromDate(data['date'] as DateTime);
       }
@@ -213,7 +165,6 @@ class TransactionService {
             .collection('transactions')
             .doc(documentId)
             .update(transactionData);
-
         if (oldValue != null && oldIsIncome != null) {
           await _updateBalance(
             isIncome: isIncome,
@@ -228,14 +179,77 @@ class TransactionService {
         await _updateBalance(isIncome: isIncome, value: value);
       }
 
-      // invalida cache após alteração
+      // Invalida cache após alteração
       _transactionsLoaded = false;
+      _balanceLoaded = false;
     } catch (e) {
       print('Erro ao salvar a transação: $e');
       throw e;
     }
   }
 
+  // ✅ Deletar transação (baseado no seu código original)
+  Future<void> deleteTransaction(String id) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('Usuário não autenticado');
+      }
+
+      final docSnapshot =
+          await _firestore.collection('transactions').doc(id).get();
+
+      if (!docSnapshot.exists) {
+        throw Exception('Transação não encontrada');
+      }
+
+      final data = docSnapshot.data()!;
+
+      if (data['userId'] != user.uid) {
+        throw Exception('Você não tem permissão para excluir esta transação');
+      }
+
+      final isIncome = data['category'] == 'Entrada';
+      final value = (data['value'] as num).toDouble();
+
+      // Excluir imagem se existir
+      if (data['image'] != null && data['image'].toString().isNotEmpty) {
+        try {
+          final imageRef = _storage.refFromURL(data['image'].toString());
+          await imageRef.delete();
+        } catch (e) {
+          print('Erro ao excluir imagem: $e');
+        }
+      }
+
+      await _firestore.collection('transactions').doc(id).delete();
+      await _updateBalance(isIncome: isIncome, value: value, isDelete: true);
+
+      // Invalida cache após exclusão
+      _transactionsLoaded = false;
+      _balanceLoaded = false;
+    } catch (e) {
+      print('Erro ao excluir transação: $e');
+      throw e;
+    }
+  }
+
+  // ✅ Upload de imagem (baseado no seu código original)
+  Future<String> _uploadImage(File imageFile) async {
+    try {
+      final String fileName = '${_uuid.v4()}${path.extension(imageFile.path)}';
+      final storageRef = _storage.ref().child('transaction_images/$fileName');
+      final uploadTask = storageRef.putFile(imageFile);
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      print('Erro ao fazer upload da imagem: $e');
+      throw e;
+    }
+  }
+
+  // ✅ Atualizar saldo (baseado no seu código original)
   Future<void> _updateBalance({
     required bool isIncome,
     required double value,
@@ -316,23 +330,5 @@ class TransactionService {
     }
 
     _balanceLoaded = false;
-  }
-
-  Future<String> _uploadImage(File imageFile) async {
-    try {
-      final String fileName = '${_uuid.v4()}${path.extension(imageFile.path)}';
-
-      final storageRef = _storage.ref().child('transaction_images/$fileName');
-
-      final uploadTask = storageRef.putFile(imageFile);
-
-      final snapshot = await uploadTask;
-      final downloadUrl = await snapshot.ref.getDownloadURL();
-
-      return downloadUrl;
-    } catch (e) {
-      print('Erro ao fazer upload da imagem: $e');
-      throw e;
-    }
   }
 }
