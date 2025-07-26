@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:tech_challenge_flutter/components/filter/filter_modal.dart';
-import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
-import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
+import 'package:tech_challenge_flutter/controllers/auth_controller.dart';
+import 'package:tech_challenge_flutter/controllers/transaction_controller.dart';
 import 'package:tech_challenge_flutter/screens/login_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 import 'package:tech_challenge_flutter/utils/transaction_helpers.dart';
@@ -12,7 +12,7 @@ import 'package:tech_challenge_flutter/widgets/month_header.dart';
 import 'package:tech_challenge_flutter/widgets/transaction_item.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../core/models/transaction.dart';
+import '../domain/models/transaction.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
@@ -34,7 +34,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   }
 
   void _downloadImage(String imageUrl, String fileName) async {
-    final _provider = Provider.of<TransactionProvider>(context, listen: false);
+    final _provider = Provider.of<TransactionController>(
+      context,
+      listen: false,
+    );
     setState(() => isLocalLoading = true);
     final result = await _provider.downloadImage(imageUrl, fileName);
     if (result != null) {
@@ -48,7 +51,10 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
   @override
   void initState() {
     super.initState();
-    final _provider = Provider.of<TransactionProvider>(context, listen: false);
+    final _provider = Provider.of<TransactionController>(
+      context,
+      listen: false,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _provider.loadTransactions();
     });
@@ -56,7 +62,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isAuth = Provider.of<AuthProvider>(context).isAuth;
+    final isAuth = Provider.of<AuthController>(context).isAuth;
 
     if (!isAuth) {
       return const LoginScreen();
@@ -117,7 +123,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
-              child: Consumer<TransactionProvider>(
+              child: Consumer<TransactionController>(
                 builder: (ctx, transactionProvider, _) {
                   transactionProvider.isLoading
                       ? ctx.loaderOverlay.show()
@@ -364,7 +370,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
 
   void _deleteTransaction(String id) async {
     try {
-      final _provider = Provider.of<TransactionProvider>(
+      final _provider = Provider.of<TransactionController>(
         context,
         listen: false,
       );

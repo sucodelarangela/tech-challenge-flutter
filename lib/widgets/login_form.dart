@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
-import 'package:tech_challenge_flutter/core/models/auth_exception.dart';
+import 'package:tech_challenge_flutter/controllers/auth_controller.dart';
+import 'package:tech_challenge_flutter/domain/models/auth_exception.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
 enum AuthMode { signup, login }
@@ -44,7 +44,7 @@ class _LoginFormState extends State<LoginForm> {
     setState(() => _isLoading = true);
 
     _formKey.currentState?.save();
-    AuthProvider auth = Provider.of(context, listen: false);
+    AuthController auth = Provider.of(context, listen: false);
 
     try {
       if (_isLogin()) {

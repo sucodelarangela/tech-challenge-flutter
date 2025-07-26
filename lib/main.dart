@@ -1,11 +1,12 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
-import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
+import 'package:tech_challenge_flutter/controllers/auth_controller.dart';
+import 'package:tech_challenge_flutter/controllers/transaction_controller.dart';
 import 'package:tech_challenge_flutter/screens/settings_screen.dart';
 import 'package:tech_challenge_flutter/screens/home_or_login_screen.dart';
 import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
@@ -14,7 +15,13 @@ import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp();
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug, // Use 'playIntegrity' em produção
+    appleProvider: AppleProvider.appAttest,
+  );
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -29,8 +36,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => TransactionProvider()),
+        ChangeNotifierProvider(create: (_) => AuthController()),
+        ChangeNotifierProvider(create: (_) => TransactionController()),
       ],
       child: MaterialApp(
         title: 'Bytebank',

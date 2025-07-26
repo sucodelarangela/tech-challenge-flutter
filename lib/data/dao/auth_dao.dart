@@ -1,21 +1,16 @@
+// data/auth_dao.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:tech_challenge_flutter/core/models/account_user.dart';
-import 'package:tech_challenge_flutter/core/models/auth_exception.dart';
-// import 'package:tech_challenge_flutter/utils/capitalize.dart';
+import 'package:tech_challenge_flutter/domain/models/account_user.dart';
+import 'package:tech_challenge_flutter/domain/models/auth_exception.dart';
 
-class AuthService {
+class AuthDao {
   final FirebaseAuth _firebase = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Converter User do Firebase para seu modelo AccountUser
+  // ✅ Método movido do AuthService original
   AccountUser? _toAccountUser(User user) {
-    // final name =
-    //     user.displayName != null && user.displayName!.trim().isNotEmpty
-    //         ? user.displayName
-    //         : user.email!.split('@')[0];
-
     return AccountUser(
       id: user.uid,
       email: user.email!,
@@ -36,19 +31,11 @@ class AuthService {
     });
   }
 
-  // Cadastro
-  Future<AccountUser> register(String email, String password) async {
+  // Criar usuário (sem validações - só acesso aos dados)
+  Future<AccountUser> createUser(String email, String password) async {
     try {
       UserCredential credential = await _firebase
           .createUserWithEmailAndPassword(email: email, password: password);
-
-      await _firestore.collection('users').doc(credential.user!.uid).set({
-        'balance': 0.0,
-        'totalIncome': 0.0,
-        'totalExpenses': 0.0,
-        'email': email,
-        'lastUpdated': DateTime.now(),
-      });
 
       return _toAccountUser(credential.user!)!;
     } on FirebaseAuthException catch (e) {
@@ -58,8 +45,23 @@ class AuthService {
     }
   }
 
-  // Login
-  Future<AccountUser> login(String email, String password) async {
+  // Inicializar saldo do usuário
+  Future<void> initializeUserBalance(String userId, String email) async {
+    try {
+      await _firestore.collection('users').doc(userId).set({
+        'balance': 0.0,
+        'totalIncome': 0.0,
+        'totalExpenses': 0.0,
+        'email': email,
+        'lastUpdated': DateTime.now(),
+      });
+    } on Exception catch (e) {
+      throw AuthException(e.toString());
+    }
+  }
+
+  // Autenticar usuário (sem validações - só acesso aos dados)
+  Future<AccountUser> authenticate(String email, String password) async {
     try {
       final credential = await _firebase.signInWithEmailAndPassword(
         email: email,
@@ -73,13 +75,18 @@ class AuthService {
     }
   }
 
+  // Atualizar dados do usuário
   Future<AccountUser?> updateUserData(String username) async {
     try {
       final user = _firebase.currentUser;
       if (user == null) return null;
+
       await user.updateDisplayName(username);
       await user.reload();
-      return getCurrentUser();
+
+      // Recarrega o usuário atual para pegar os dados atualizados
+      final updatedUser = _firebase.currentUser;
+      return updatedUser != null ? _toAccountUser(updatedUser) : null;
     } on FirebaseAuthException catch (e) {
       throw AuthException(e.code);
     } on Exception catch (e) {
@@ -88,17 +95,21 @@ class AuthService {
   }
 
   // Logout
-  Future<void> logout() async {
+  Future<void> signOut() async {
     await _firebase.signOut();
   }
 
-  Future<void> deleteAccount(String password) async {
+  // Deletar conta
+  Future<void> deleteUserAccount(String password) async {
     try {
       final user = _firebase.currentUser;
+      if (user == null) throw AuthException('user-not-found');
+
       final credential = EmailAuthProvider.credential(
-        email: user!.email!,
+        email: user.email!,
         password: password,
       );
+
       await user.reauthenticateWithCredential(credential);
       await _deleteUserData(user.uid);
       await user.delete();
@@ -109,6 +120,7 @@ class AuthService {
     }
   }
 
+  // Deletar dados do usuário (método privado)
   Future<void> _deleteUserData(String userId) async {
     final firestore = FirebaseFirestore.instance;
     final storage = FirebaseStorage.instance;

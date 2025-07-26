@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/core/models/transaction.dart';
-import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
+import 'package:tech_challenge_flutter/domain/models/transaction.dart';
+import 'package:tech_challenge_flutter/controllers/transaction_controller.dart';
 import 'package:tech_challenge_flutter/widgets/adaptative_date_picker.dart';
 
 class TransactionFormScreen extends StatefulWidget {
@@ -133,7 +133,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         _formData['image'] = _imageUrl;
       }
 
-      await Provider.of<TransactionProvider>(
+      await Provider.of<TransactionController>(
         context,
         listen: false,
       ).saveTransaction(_formData);
@@ -168,7 +168,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     final args = ModalRoute.of(context)?.settings.arguments;
     final appBarTitle = args != null ? 'Editar Transação' : 'Nova Transação';
 
-    final isLoading = Provider.of<TransactionProvider>(context).isLoading;
+    final isLoading = Provider.of<TransactionController>(context).isLoading;
     isLoading ? context.loaderOverlay.show() : context.loaderOverlay.hide();
 
     return Scaffold(

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:loader_overlay/loader_overlay.dart';
 import 'package:provider/provider.dart';
-import 'package:tech_challenge_flutter/core/providers/auth_provider.dart';
-import 'package:tech_challenge_flutter/core/providers/transaction_provider.dart';
+import 'package:tech_challenge_flutter/controllers/auth_controller.dart';
+import 'package:tech_challenge_flutter/controllers/transaction_controller.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 import 'package:tech_challenge_flutter/widgets/main_drawer.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -16,12 +16,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late TransactionProvider provider;
+  late TransactionController provider;
 
   @override
   void initState() {
     super.initState();
-    provider = Provider.of<TransactionProvider>(context, listen: false);
+    provider = Provider.of<TransactionController>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       provider.loadBalance();
     });
@@ -47,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Consumer2<AuthProvider, TransactionProvider>(
+            Consumer2<AuthController, TransactionController>(
               builder: (ctx, authProvider, trProvider, _) {
                 trProvider.isLoading
                     ? context.loaderOverlay.show()
@@ -410,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       bottomNavigationBar: Builder(
         builder: (context) {
-          final provider = Provider.of<TransactionProvider>(context);
+          final provider = Provider.of<TransactionController>(context);
           final userBalance = provider.userBalance;
 
           if (userBalance == null ||

@@ -4,12 +4,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:tech_challenge_flutter/core/models/transaction.dart';
-import 'package:tech_challenge_flutter/core/models/user_balance.dart';
-import 'package:tech_challenge_flutter/core/services/transaction_service.dart';
+import 'package:tech_challenge_flutter/domain/models/transaction.dart';
+import 'package:tech_challenge_flutter/domain/models/user_balance.dart';
+import 'package:tech_challenge_flutter/data/dao/transaction_dao.dart';
 
-class TransactionProvider with ChangeNotifier {
-  final TransactionService _transactionService = TransactionService();
+class TransactionController with ChangeNotifier {
+  final TransactionDao _transactionDao = TransactionDao();
 
   UserBalance? _userBalance;
   List<TransactionModel>? _transactions;
@@ -22,8 +22,8 @@ class TransactionProvider with ChangeNotifier {
   bool _balanceLoaded = false;
   bool _transactionsLoaded = false;
 
-  TransactionProvider() {
-    if (_transactionService.isUserAuthenticated) {
+  TransactionController() {
+    if (_transactionDao.isUserAuthenticated) {
       loadBalance();
       loadTransactions();
     }
@@ -63,7 +63,7 @@ class TransactionProvider with ChangeNotifier {
     _setError(null);
 
     try {
-      await _transactionService.deleteTransaction(id);
+      await _transactionDao.deleteTransaction(id);
       await loadBalance(forceRefresh: true);
       await loadTransactions(forceRefresh: true);
     } catch (e) {
@@ -116,7 +116,7 @@ class TransactionProvider with ChangeNotifier {
 
     try {
       // repassa forceRefresh ao service
-      _userBalance = await _transactionService.getBalance(
+      _userBalance = await _transactionDao.getBalance(
         forceRefresh: forceRefresh,
       );
       _balanceLoaded = true;
@@ -141,7 +141,7 @@ class TransactionProvider with ChangeNotifier {
 
     try {
       // repassa forceRefresh ao service
-      final txs = await _transactionService.getTransactions(
+      final txs = await _transactionDao.getTransactions(
         forceRefresh: forceRefresh,
       );
       _transactions = txs;
@@ -162,7 +162,7 @@ class TransactionProvider with ChangeNotifier {
     _setError(null);
 
     try {
-      await _transactionService.saveTransaction(data);
+      await _transactionDao.saveTransaction(data);
       await loadBalance(forceRefresh: true);
       await loadTransactions(forceRefresh: true);
     } catch (e) {
