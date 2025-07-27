@@ -12,7 +12,7 @@ import 'package:tech_challenge_flutter/widgets/month_header.dart';
 import 'package:tech_challenge_flutter/widgets/transaction_item.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
-import '../domain/models/transaction.dart';
+import 'package:tech_challenge_flutter/domain/models/transaction.dart';
 
 class TransactionsScreen extends StatefulWidget {
   const TransactionsScreen({super.key});
