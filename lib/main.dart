@@ -9,8 +9,8 @@ import 'package:tech_challenge_flutter/controllers/auth_controller.dart';
 import 'package:tech_challenge_flutter/controllers/transaction_controller.dart';
 import 'package:tech_challenge_flutter/screens/settings_screen.dart';
 import 'package:tech_challenge_flutter/screens/home_or_login_screen.dart';
-import 'package:tech_challenge_flutter/screens/transaction_form_screen.dart';
-import 'package:tech_challenge_flutter/screens/transactions_screen.dart';
+import 'package:tech_challenge_flutter/screens/transactions/transaction_form_screen.dart';
+import 'package:tech_challenge_flutter/screens/transactions/transactions_screen.dart';
 import 'package:tech_challenge_flutter/utils/app_routes.dart';
 
 void main() async {
