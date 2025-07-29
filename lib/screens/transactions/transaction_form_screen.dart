@@ -7,6 +7,10 @@ import 'package:provider/provider.dart';
 import 'package:tech_challenge_flutter/domain/models/transaction.dart';
 import 'package:tech_challenge_flutter/controllers/transaction_controller.dart';
 import 'package:tech_challenge_flutter/widgets/adaptative_date_picker.dart';
+import 'package:tech_challenge_flutter/screens/transactions/widgets/transaction_form_description_field.dart';
+import 'package:tech_challenge_flutter/screens/transactions/widgets/transaction_form_value_field.dart';
+import 'package:tech_challenge_flutter/screens/transactions/widgets/transaction_form_category_dropdown.dart';
+import 'package:tech_challenge_flutter/screens/transactions/widgets/transaction_form_image_picker_preview.dart';
 
 class TransactionFormScreen extends StatefulWidget {
   const TransactionFormScreen({super.key});
@@ -176,129 +180,33 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         title: Text(appBarTitle),
         actions: [IconButton(onPressed: _submitForm, icon: Icon(Icons.save))],
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(15),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              TextFormField(
-                initialValue: _formData['description']?.toString(),
-                decoration: InputDecoration(labelText: 'Descrição'),
-                textInputAction: TextInputAction.next,
-                onFieldSubmitted: (_) {
-                  FocusScope.of(context).requestFocus(_valueFocus);
-                },
-                onSaved:
-                    (description) =>
-                        _formData['description'] = description ?? '',
-                validator: (_description) {
-                  final description = _description ?? '';
-                  if (description.trim().isEmpty) {
-                    return 'Campo obrigatório';
-                  }
-                  if (description.trim().length < 3) {
-                    return 'Descrição precisa de, no mínimo, 3 caracteres';
-                  }
-                  return null;
-                },
+              TransactionFormDescriptionField(
+                formData: _formData,
+                valueFocus: _valueFocus,
               ),
-
-              TextFormField(
-                initialValue: _formData['value']?.toString(),
-                decoration: InputDecoration(labelText: 'Valor'),
-                textInputAction: TextInputAction.next,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                focusNode: _valueFocus,
-                onSaved:
-                    (value) => _formData['value'] = double.parse(value ?? '0'),
-                validator: (_value) {
-                  final valueString = _value ?? '';
-                  final value = double.tryParse(valueString) ?? -1;
-                  if (value <= 0) return 'Informe um preço válido';
-                  return null;
-                },
+              TransactionFormValueField(
+                formData: _formData,
+                valueFocus: _valueFocus,
               ),
-
-              DropdownButtonFormField(
-                decoration: InputDecoration(
-                  labelText: 'Selecione uma categoria',
-                ),
-                focusNode: _categoryFocus,
-                value: _formData['category'],
-                items:
-                    ['Entrada', 'Saída']
-                        .map(
-                          (opt) =>
-                              DropdownMenuItem(value: opt, child: Text(opt)),
-                        )
-                        .toList(),
-                onChanged: (category) => _formData['category'] = category ?? '',
-                validator: (category) {
-                  if (category == null) {
-                    return 'Campo obrigatório';
-                  }
-                  return null;
-                },
+              TransactionFormCategoryDropdown(
+                formData: _formData,
+                categoryFocus: _categoryFocus,
               ),
-
               AdaptativeDatePicker(
                 selectedDate: _selectedDate,
                 onDateChanged: (newDate) => _formData['date'] = newDate,
               ),
-
-              InkWell(
-                onTap: _pickImage,
-                child: Container(
-                  height: 300,
-                  width: 300,
-                  margin: EdgeInsets.only(top: 10, left: 10),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey, width: 1),
-                  ),
-                  child:
-                      _imageFile != null
-                          // Exibir imagem local
-                          ? Image.file(_imageFile!, fit: BoxFit.cover)
-                          : _isImageFromNetwork && _imageUrl.isNotEmpty
-                          ? Image.network(
-                            _imageUrl,
-                            fit: BoxFit.cover,
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return Center(child: CircularProgressIndicator());
-                            },
-                            errorBuilder: (context, error, stackTrace) {
-                              return Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(Icons.error, size: 40),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      'Erro ao carregar imagem',
-                                      style: TextStyle(
-                                        color:
-                                            Theme.of(context).colorScheme.error,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          )
-                          : const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.camera_alt, size: 40),
-                                SizedBox(height: 8),
-                                Text('Adicionar imagem'),
-                              ],
-                            ),
-                          ),
-                ),
+              TransactionFormImagePickerPreview(
+                imageFile: _imageFile,
+                imageUrl: _imageUrl,
+                isImageFromNetwork: _isImageFromNetwork,
+                pickImage: _pickImage,
               ),
             ],
           ),
