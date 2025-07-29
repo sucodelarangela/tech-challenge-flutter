@@ -41,6 +41,8 @@ O projeto foi refatorado para atender um padrão de arquitetura baseado em DDD (
 
 ## Vídeo demonstrativo
 
+Optamos por manter o mesmo vídeo anterior, pois as alterações se deram (em maior parte) apenas em código. No entanto, seguindo sugestão de melhoria indicada na correção da nota anterior, colocamos setas indicativas na Home para que fique claro ao usuário que é possível alternar entre gráficos.
+
 https://youtu.be/l0pXp5K4J9g
 
 ## Estrutura do projeto
